@@ -2,6 +2,15 @@
 
 Bu sürüm, önceki Go tabanlı uygulamanın Rust ile yeniden yazılmış hâlidir. Uygulama artık tarayıcıda açılmaz. Kendi penceresinde çalışan bağımsız bir Windows programıdır (Microsoft Edge WebView2 altyapısı). İnternet bağlantısı gerektirmez.
 
+## İndirme
+
+Uygulama **ücretsizdir**. En son sürümü **[Releases (Sürümler)](https://github.com/avhalilkarakaya/Kutuphane-Takip-Sistemi-Pro/releases/latest)** sayfasından indirebilirsiniz:
+
+- `Kutuphane_Takip_Sistemi_Pro_64bit.exe`: çoğu bilgisayar için (Windows 10/11, 64 bit)
+- `Kutuphane_Takip_Sistemi_Pro_32bit.exe`: 32 bit Windows 10 için
+
+Kurulum gerekmez. Exe dosyasını kendine ait bir klasöre (ör. `Belgeler\Kütüphane`) koyup çift tıklayın. Veriler aynı klasörde tutulur. İlk açılışta Windows "bilgisayarınızı korudu" uyarısı gösterirse **Ek bilgi > Yine de çalıştır** deyin. Uygulama dijital olarak imzalı olmadığı için bu uyarı çıkar.
+
 ## Yenilikler
 
 ### E-kitap okuyucu
@@ -64,6 +73,12 @@ Bu sürüm, önceki Go tabanlı uygulamanın Rust ile yeniden yazılmış hâlid
 1. Bu klasörü bir GitHub deposuna yükleyin.
 2. **Actions** sekmesinde "Windows exe derle" iş akışı kendiliğinden çalışır.
 3. İş bitince sayfanın altındaki **Artifacts** bölümünden 64 bit ve 32 bit exe dosyalarını indirin.
+
+### Yeni sürüm yayımlama
+`v` ile başlayan bir etiket (ör. `v2.0.1`) yüklendiğinde GitHub exe dosyalarını derler ve
+**Releases** sayfasında herkesin indirebileceği yeni bir sürüm oluşturur. Sürüm açıklaması
+`.github/SURUM_NOTLARI.md` dosyasından alınır. Etiketten önce `Cargo.toml` ve `src/api.rs`
+içindeki sürüm numarasını güncelleyin.
 
 ## Okuyucu kısayolları
 | Kısayol | İşlev |

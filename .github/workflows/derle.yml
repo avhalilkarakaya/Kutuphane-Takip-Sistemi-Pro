@@ -1,10 +1,16 @@
-# GitHub'a yüklendiğinde exe dosyalarını otomatik derler.
-# Derlenen dosyalar: Actions sekmesi > son çalıştırma > "Artifacts" bölümü.
+# Her yüklemede exe dosyalarını derler (Actions > son çalıştırma > "Artifacts").
+# "v" ile başlayan bir etiket (ör. v2.0.0) yüklendiğinde ayrıca herkesin indirebileceği
+# bir sürüm (Releases) oluşturur ve exe dosyalarını oraya ekler.
 name: Windows exe derle
 
 on:
   push:
+    branches: ['**']
+    tags: ['v*']
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -32,3 +38,24 @@ jobs:
         with:
           name: Kutuphane_Takip_Sistemi_Pro_${{ matrix.suffix }}
           path: Kutuphane_Takip_Sistemi_Pro_${{ matrix.suffix }}.exe
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dagitim
+          merge-multiple: true
+      - name: Sağlama toplamlarını hesapla
+        working-directory: dagitim
+        run: sha256sum *.exe > SHA256SUMS.txt
+      - name: Sürümü yayımla
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" dagitim/*.exe dagitim/SHA256SUMS.txt
+          --title "Kütüphane Takip Sistemi Pro $GITHUB_REF_NAME"
+          --notes-file .github/SURUM_NOTLARI.md
