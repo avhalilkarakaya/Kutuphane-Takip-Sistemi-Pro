@@ -1,6 +1,7 @@
 # Her yüklemede exe dosyalarını derler (Actions > son çalıştırma > "Artifacts").
-# "v" ile başlayan bir etiket (ör. v2.0.0) yüklendiğinde ayrıca herkesin indirebileceği
-# bir sürüm (Releases) oluşturur ve exe dosyalarını oraya ekler.
+# main dalına yüklenen koddaki sürüm numarası (Cargo.toml) henüz yayımlanmamışsa, ya da
+# "v" ile başlayan bir etiket yüklenirse, herkesin indirebileceği bir sürüm (Releases)
+# oluşturur ve exe dosyalarını oraya ekler.
 name: Windows exe derle
 
 on:
@@ -40,22 +41,40 @@ jobs:
           path: Kutuphane_Takip_Sistemi_Pro_${{ matrix.suffix }}.exe
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
+      - name: Sürüm numarasını belirle
+        id: surum
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            etiket="$GITHUB_REF_NAME"
+          else
+            etiket="v$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)"
+          fi
+          echo "etiket=$etiket" >> "$GITHUB_OUTPUT"
+          if gh release view "$etiket" > /dev/null 2>&1; then
+            echo "$etiket zaten yayımlanmış, yeni sürüm oluşturulmuyor."
+            echo "yayimli=1" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/download-artifact@v4
+        if: steps.surum.outputs.yayimli != '1'
         with:
           path: dagitim
           merge-multiple: true
       - name: Sağlama toplamlarını hesapla
+        if: steps.surum.outputs.yayimli != '1'
         working-directory: dagitim
         run: sha256sum *.exe > SHA256SUMS.txt
       - name: Sürümü yayımla
-        env:
-          GH_TOKEN: ${{ github.token }}
+        if: steps.surum.outputs.yayimli != '1'
         run: >
-          gh release create "$GITHUB_REF_NAME" dagitim/*.exe dagitim/SHA256SUMS.txt
-          --title "Kütüphane Takip Sistemi Pro $GITHUB_REF_NAME"
+          gh release create "${{ steps.surum.outputs.etiket }}" dagitim/*.exe dagitim/SHA256SUMS.txt
+          --target "$GITHUB_SHA"
+          --title "Kütüphane Takip Sistemi Pro ${{ steps.surum.outputs.etiket }}"
           --notes-file .github/SURUM_NOTLARI.md

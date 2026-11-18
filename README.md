@@ -75,10 +75,11 @@ Kurulum gerekmez. Exe dosyasını kendine ait bir klasöre (ör. `Belgeler\Küt�
 3. İş bitince sayfanın altındaki **Artifacts** bölümünden 64 bit ve 32 bit exe dosyalarını indirin.
 
 ### Yeni sürüm yayımlama
-`v` ile başlayan bir etiket (ör. `v2.0.1`) yüklendiğinde GitHub exe dosyalarını derler ve
-**Releases** sayfasında herkesin indirebileceği yeni bir sürüm oluşturur. Sürüm açıklaması
-`.github/SURUM_NOTLARI.md` dosyasından alınır. Etiketten önce `Cargo.toml` ve `src/api.rs`
-içindeki sürüm numarasını güncelleyin.
+`Cargo.toml` (`version`) ve `src/api.rs` (`VERSION`) içindeki sürüm numarasını artırıp
+(ör. `2.0.1`) değişikliği `main` dalına yükleyin. GitHub exe dosyalarını derler ve bu numara
+daha önce yayımlanmamışsa **Releases** sayfasında herkesin indirebileceği yeni bir sürüm
+(`v2.0.1`) oluşturur. Sürüm numarası değişmeyen yüklemelerde yalnızca derleme yapılır.
+Sürüm açıklaması `.github/SURUM_NOTLARI.md` dosyasından alınır.
 
 ## Okuyucu kısayolları
 | Kısayol | İşlev |
