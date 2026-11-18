@@ -61,7 +61,7 @@ Bu sürüm, önceki Go tabanlı uygulamanın Rust ile yeniden yazılmış hâlid
 İlk derleme gerekli paketleri internetten indirir ve 5–10 dakika sürebilir. Sonraki derlemeler daha hızlıdır. Oluşan exe tek dosyadır. Arayüz, PDF okuyucu ve SQLite exe'nin içindedir.
 
 ### Yol 2: GitHub üzerinde (bilgisayara bir şey kurmadan)
-1. Bu klasörü (özel/private) bir GitHub deposuna yükleyin.
+1. Bu klasörü bir GitHub deposuna yükleyin.
 2. **Actions** sekmesinde "Windows exe derle" iş akışı kendiliğinden çalışır.
 3. İş bitince sayfanın altındaki **Artifacts** bölümünden 64 bit ve 32 bit exe dosyalarını indirin.
 
