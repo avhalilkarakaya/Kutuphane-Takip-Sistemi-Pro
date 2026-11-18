@@ -30,3 +30,7 @@ opt-level = 3
 lto = true
 codegen-units = 1
 strip = true
+
+# "localtest" yalnızca geliştirme sırasında arayüzü denemek için kullanılan derleme ayarıdır
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(localtest)'] }
