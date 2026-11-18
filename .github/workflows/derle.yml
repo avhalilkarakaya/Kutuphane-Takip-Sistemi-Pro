@@ -1,0 +1,31 @@
+# GitHub'a yüklendiğinde exe dosyalarını otomatik derler.
+# Derlenen dosyalar: Actions sekmesi > son çalıştırma > "Artifacts" bölümü.
+name: Windows exe derle
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            suffix: 64bit
+          - target: i686-pc-windows-msvc
+            suffix: 32bit
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust hedefini ekle
+        run: rustup target add ${{ matrix.target }}
+      - name: Derle
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Exe dosyasını hazırla
+        shell: cmd
+        run: copy target\${{ matrix.target }}\release\Kutuphane_Takip_Sistemi_Pro.exe Kutuphane_Takip_Sistemi_Pro_${{ matrix.suffix }}.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kutuphane_Takip_Sistemi_Pro_${{ matrix.suffix }}
+          path: Kutuphane_Takip_Sistemi_Pro_${{ matrix.suffix }}.exe

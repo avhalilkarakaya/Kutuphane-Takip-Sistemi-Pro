@@ -1,0 +1,7 @@
+*.bat text eol=crlf
+*.rgba binary
+*.ico binary
+*.woff2 binary
+*.bcmap binary
+*.pfb binary
+*.wasm binary

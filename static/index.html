@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Karakaya Kütüphanesi | Yönetim Sistemi Pro</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/extra.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; }
+        .navy-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <!-- Mobile Header Bar -->
+    <div class="md:hidden navy-gradient text-white flex justify-between items-center p-4 z-20 shrink-0 shadow-md">
+        <h1 id="mobile-lib-title" class="text-lg font-bold tracking-wider truncate"><i class="fas fa-book-open mr-2"></i>Kütüphane YS</h1>
+        <button onclick="toggleMobileMenu()" class="text-white text-xl p-1 focus:outline-none"><i id="menu-icon" class="fas fa-bars"></i></button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:static w-64 navy-gradient text-white flex flex-col shadow-2xl z-30 transition-transform duration-300 ease-in-out shrink-0">
+        <div class="p-6 border-b border-white/10 hidden md:block">
+            <h1 id="sidebar-lib-title" class="text-xl font-bold tracking-wider truncate"><i class="fas fa-book-open mr-2"></i>Kütüphane YS</h1>
+            <p class="text-xs text-slate-300 mt-1">Profesyonel Katalog ve Takip Sistemi <span class="ml-1 px-1.5 py-0.5 rounded bg-amber-400 text-navy-900 font-bold text-[10px]">PRO</span></p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto mt-12 md:mt-0">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full flex items-center p-3 rounded-lg bg-white/25 transition text-left"><i class="fas fa-chart-pie w-6"></i> Gösterge Paneli</button>
+            <button onclick="switchTab('books')" id="btn-books" class="w-full flex items-center p-3 rounded-lg hover:bg-white/10 transition text-slate-300 text-left"><i class="fas fa-book w-6"></i> Katalog / Kitaplar</button>
+            <button onclick="switchTab('reading')" id="btn-reading" class="w-full flex items-center p-3 rounded-lg hover:bg-white/10 transition text-slate-300 text-left"><i class="fas fa-book-bookmark w-6"></i> Okuma Takibi</button>
+            <button onclick="switchTab('members')" id="btn-members" class="w-full flex items-center p-3 rounded-lg hover:bg-white/10 transition text-slate-300 text-left"><i class="fas fa-users w-6"></i> Üye Yönetimi</button>
+            <button onclick="switchTab('loans')" id="btn-loans" class="w-full flex items-center p-3 rounded-lg hover:bg-white/10 transition text-slate-300 text-left"><i class="fas fa-exchange-alt w-6"></i> Ödünç / İade</button>
+            <button onclick="switchTab('settings')" id="btn-settings" class="w-full flex items-center p-3 rounded-lg hover:bg-white/10 transition text-slate-300 text-left"><i class="fas fa-database w-6"></i> Veri Aktarımı & Ayarlar</button>
+        </nav>
+        <div class="p-4 border-t border-white/10 text-center text-xs text-slate-300 shrink-0">
+            <p>&copy; 2026 Halil Karakaya</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Tüm Hakları Saklıdır.</p>
+        </div>
+    </aside>
+    <div id="sidebar-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden"></div>
+
+    <main class="flex-1 overflow-y-auto bg-slate-50 relative p-4 md:p-8">
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="tab-content active">
+            <h2 class="text-2xl md:text-3xl font-bold text-navy-900 mb-2">Gösterge Paneli</h2>
+            <p id="welcome-lib-name" class="text-sm text-slate-500 mb-6 md:mb-8 font-medium">Kütüphane Yönetim Paneli</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500"><p class="text-sm text-slate-500 font-semibold mb-1">Kayıtlı Eser (Başlık)</p><p class="text-3xl font-bold text-navy-900" id="stat-titles">0</p></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500"><p class="text-sm text-slate-500 font-semibold mb-1">Toplam Kitap Kopyası</p><p class="text-3xl font-bold text-navy-900" id="stat-books">0</p></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500"><p class="text-sm text-slate-500 font-semibold mb-1">E-Kitap / PDF</p><p class="text-3xl font-bold text-navy-900" id="stat-ebooks">0</p></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500"><p class="text-sm text-slate-500 font-semibold mb-1">Kayıtlı Üye</p><p class="text-3xl font-bold text-navy-900" id="stat-members">0</p></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-500"><p class="text-sm text-slate-500 font-semibold mb-1">Aktif Ödünç Verilen</p><p class="text-3xl font-bold text-navy-900" id="stat-loans">0</p></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500"><p class="text-sm text-slate-500 font-semibold mb-1">Geciken İadeler</p><p class="text-3xl font-bold text-navy-900" id="stat-overdue">0</p></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500 cursor-pointer" onclick="switchTab('reading')"><p class="text-sm text-slate-500 font-semibold mb-1">Şu An Okunan</p><p class="text-3xl font-bold text-navy-900" id="stat-reading">0</p></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500 cursor-pointer" onclick="switchTab('reading')"><p class="text-sm text-slate-500 font-semibold mb-1">Bu Yıl Bitirilen</p><p class="text-3xl font-bold text-navy-900" id="stat-finished">0</p></div>
+            </div>
+            <div id="dash-reading" class="mt-6 md:mt-8"></div>
+        </div>
+
+        <!-- BOOKS -->
+        <div id="books" class="tab-content">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 md:mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-navy-900">Katalog / Kitap Yönetimi</h2>
+                <button onclick="openBookModal()" class="bg-navy-800 text-white px-5 py-2.5 rounded font-bold hover:bg-navy-900 shadow"><i class="fas fa-plus mr-2"></i>Yeni Eser Ekle</button>
+            </div>
+            <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b pb-4">
+                    <h3 class="text-lg font-bold text-navy-800 shrink-0">Eser Listesi <span id="book-count" class="text-sm font-normal text-slate-400"></span></h3>
+                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                        <div class="relative w-full sm:w-72">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fas fa-search"></i></span>
+                            <input type="text" id="search-input" oninput="filterBooks()" placeholder="Ad, yazar, konu, envanter, ISBN ara..." class="w-full pl-9 pr-4 py-2 border rounded text-sm bg-slate-50 focus:bg-white focus:outline-none focus:border-navy-800">
+                        </div>
+                        <select id="filter-status" onchange="filterBooks()" class="p-2 border rounded text-sm bg-white w-full sm:w-40"></select>
+                        <select id="filter-ebook" onchange="filterBooks()" class="p-2 border rounded text-sm bg-white w-full sm:w-40">
+                            <option value="">Tüm Eserler</option><option value="1">E-Kitabı Olanlar</option><option value="0">E-Kitabı Olmayanlar</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[900px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 border-b">
+                                <th class="p-3 w-10">ID</th><th class="p-3">Eser Detayı</th><th class="p-3">Envanter & Sınıflama</th><th class="p-3">Kütüphane / Kaynak</th><th class="p-3" style="min-width:190px">Okuma Durumu</th><th class="p-3">Stok</th><th class="p-3 text-center">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-books" class="text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- READING TRACKER -->
+        <div id="reading" class="tab-content">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-navy-900">Okuma Takibi</h2>
+                    <p class="text-sm text-slate-500 mt-1">Okuduğunuz kitapların ilerlemesi, okuma hedefiniz ve notlarınız</p>
+                </div>
+            </div>
+            <div id="rt-stats" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 space-y-6">
+                    <section class="k-card">
+                        <div class="k-card-h"><h3><i class="fas fa-book-open-reader mr-2 text-blue-600"></i>Okumakta Olduklarım</h3><span id="rt-reading-count" class="k-chip"></span></div>
+                        <div id="rt-reading"></div>
+                    </section>
+                    <section class="k-card" id="rt-paused-card">
+                        <div class="k-card-h"><h3><i class="fas fa-circle-pause mr-2 text-amber-500"></i>Yarım Bırakılanlar</h3></div>
+                        <div id="rt-paused"></div>
+                    </section>
+                    <section class="k-card">
+                        <div class="k-card-h">
+                            <h3><i class="fas fa-note-sticky mr-2 text-purple-600"></i>Tüm Okuma Notları</h3>
+                            <div class="flex items-center gap-2">
+                                <select id="rt-note-kind" onchange="renderAllNotes()" class="k-input"><option value="">Tüm türler</option><option>Not</option><option>Alıntı</option><option>Soru</option><option>Önemli</option></select>
+                                <input id="rt-note-q" oninput="renderAllNotes()" class="k-input" placeholder="Notlarda ara...">
+                            </div>
+                        </div>
+                        <div class="k-card-b" id="rt-notes"></div>
+                    </section>
+                </div>
+                <div class="space-y-6">
+                    <section class="k-card">
+                        <div class="k-card-h"><h3><i class="fas fa-chart-column mr-2 text-indigo-500"></i>Son 14 Gün</h3><span class="k-chip">okunan sayfa</span></div>
+                        <div class="k-card-b" id="rt-days"></div>
+                    </section>
+                    <section class="k-card">
+                        <div class="k-card-h"><h3><i class="fas fa-list-check mr-2 text-purple-600"></i>Okuma Listem</h3><span class="k-chip">Okunacak</span></div>
+                        <div id="rt-todo"></div>
+                    </section>
+                    <section class="k-card">
+                        <div class="k-card-h"><h3><i class="fas fa-flag-checkered mr-2 text-green-600"></i>Son Bitirilenler</h3></div>
+                        <div id="rt-done"></div>
+                    </section>
+                    <section class="k-card">
+                        <div class="k-card-h"><h3><i class="fas fa-calendar-check mr-2 text-green-600"></i><span id="rt-year-title">Aylara Göre</span></h3><span class="k-chip">bitirilen kitap</span></div>
+                        <div class="k-card-b" id="rt-months"></div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- MEMBERS -->
+        <div id="members" class="tab-content">
+            <h2 class="text-2xl md:text-3xl font-bold text-navy-900 mb-6 md:mb-8">Üye Yönetimi</h2>
+            <div class="flex flex-col xl:flex-row gap-6 md:gap-8">
+                <div class="w-full xl:w-1/3 bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100 h-fit">
+                    <h3 class="text-lg font-bold text-navy-800 mb-4 border-b pb-2">Yeni Üye Ekle</h3>
+                    <form id="form-member" onsubmit="addMember(event)" class="space-y-4">
+                        <div><label class="text-sm font-medium">Ad Soyad</label><input type="text" id="m-name" required class="w-full p-2 border rounded mt-1"></div>
+                        <div><label class="text-sm font-medium">Telefon</label><input type="text" id="m-phone" class="w-full p-2 border rounded mt-1"></div>
+                        <div><label class="text-sm font-medium">E-Posta</label><input type="email" id="m-email" class="w-full p-2 border rounded mt-1"></div>
+                        <button type="submit" class="w-full bg-green-600 text-white py-2.5 rounded font-bold hover:bg-green-700">Üye Kaydet</button>
+                    </form>
+                </div>
+                <div class="w-full xl:w-2/3 bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead><tr class="bg-slate-50 text-slate-600 border-b"><th class="p-3">ID</th><th class="p-3">Ad Soyad</th><th class="p-3">İletişim</th><th class="p-3">Kayıt Tarihi</th><th class="p-3 text-center">İşlem</th></tr></thead>
+                        <tbody id="table-members" class="text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOANS -->
+        <div id="loans" class="tab-content">
+            <h2 class="text-2xl md:text-3xl font-bold text-navy-900 mb-6 md:mb-8">Ödünç / İade İşlemleri</h2>
+            <div class="flex flex-col xl:flex-row gap-6 md:gap-8">
+                <div class="w-full xl:w-1/3 bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100 h-fit">
+                    <h3 class="text-lg font-bold text-navy-800 mb-4 border-b pb-2">Kitap Ödünç Ver</h3>
+                    <form id="form-loan" onsubmit="addLoan(event)" class="space-y-4">
+                        <div><label class="text-sm font-medium">Üye Seç</label><select id="l-member" required class="w-full p-2 border rounded mt-1 bg-white"></select></div>
+                        <div><label class="text-sm font-medium">Kitap Seç</label><select id="l-book" required class="w-full p-2 border rounded mt-1 bg-white"></select></div>
+                        <div><label class="text-sm font-medium">Süre (Gün)</label><input type="number" id="l-days" value="15" min="1" required class="w-full p-2 border rounded mt-1"></div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2.5 rounded font-bold hover:bg-blue-700">Ödünç Ver</button>
+                    </form>
+                </div>
+                <div class="w-full xl:w-2/3 bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead><tr class="bg-slate-50 text-slate-600 border-b"><th class="p-3">Üye</th><th class="p-3">Kitap</th><th class="p-3">Veriliş</th><th class="p-3">Son Tarih</th><th class="p-3">Durum</th><th class="p-3 text-center">İşlem</th></tr></thead>
+                        <tbody id="table-loans" class="text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="settings" class="tab-content">
+            <h2 class="text-2xl md:text-3xl font-bold text-navy-900 mb-6 md:mb-8">Veri Aktarımı & Ayarlar</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 h-fit">
+                    <h3 class="text-lg font-bold text-navy-800 mb-4 border-b pb-2"><i class="fas fa-signature mr-2 text-blue-600"></i>Kütüphane Bilgileri</h3>
+                    <form id="form-settings" onsubmit="updateSettings(event)" class="space-y-4">
+                        <div>
+                            <label class="text-sm font-medium">Kütüphane İsmi</label>
+                            <input type="text" id="setting-lib-name" required class="w-full p-2 border rounded mt-1" placeholder="Örn: Karakaya Kütüphanesi">
+                            <p class="text-xs text-slate-400 mt-1">Bu isim üst menüde, panelde ve yeni eklenen kitaplarda kaynak olarak gösterilir.</p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium">Yıllık Okuma Hedefi (kitap)</label>
+                            <input type="number" id="setting-goal" min="0" class="w-full p-2 border rounded mt-1" placeholder="Örn: 24">
+                            <p class="text-xs text-slate-400 mt-1">Okuma Takibi bölümünde yıllık ilerlemeniz bu hedefe göre gösterilir. Boş bırakılabilir.</p>
+                        </div>
+                        <button type="submit" class="w-full bg-navy-800 text-white py-2.5 rounded font-bold hover:bg-navy-900">Ayarları Kaydet</button>
+                    </form>
+                    <p class="text-xs text-slate-500 mt-4 break-all"><i class="fas fa-folder-open mr-1"></i>Veri klasörü: <b id="data-dir"></b><br>E-kitaplar bu klasördeki <b>e_kitaplar</b>, kapak resimleri <b>uploads</b> klasöründe saklanır.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 h-fit">
+                    <h3 class="text-lg font-bold text-navy-800 mb-4 border-b pb-2"><i class="fas fa-file-import mr-2 text-green-600"></i>Başka Veritabanından Veri Aktar / Birleştir</h3>
+                    <p class="text-sm text-slate-600 mb-4">Diğer kütüphane kopyalarından (normal veya Pro sürüm) elde ettiğiniz <b>kutuphane_pro.db</b> dosyasını yükleyerek ortak havuzda buluşabilirsiniz. Gelen kitaplar ait oldukları kütüphane isimleriyle etiketlenir.</p>
+                    <form id="form-merge" onsubmit="mergeDatabase(event)" class="space-y-4">
+                        <div><label class="text-sm font-medium text-slate-700">Aktarılacak Veritabanı Dosyası (.db)</label><input type="file" id="merge-db-file" accept=".db" required class="w-full p-2 border rounded mt-1 bg-slate-50 text-sm"></div>
+                        <div id="merge-result" class="hidden p-3 rounded text-sm font-medium"></div>
+                        <button type="submit" id="merge-btn" class="w-full bg-green-600 text-white py-2.5 rounded font-bold hover:bg-green-700 shadow flex items-center justify-center gap-2"><i class="fas fa-database"></i> Veritabanlarını Birleştir</button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 h-fit">
+                    <h3 class="text-lg font-bold text-navy-800 mb-4 border-b pb-2"><i class="fas fa-shield-halved mr-2 text-purple-600"></i>Yedekleme & Dışa Aktarma</h3>
+                    <p class="text-sm text-slate-600 mb-4">Veritabanının anlık bir yedeğini indirebilir veya kataloğu Excel'de açılabilen CSV dosyası olarak dışa aktarabilirsiniz. İndirilen dosyalar <b>İndirilenler</b> klasörüne kaydedilir.</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <a href="/api/backup" class="bg-purple-600 text-white py-2.5 rounded font-bold hover:bg-purple-700 text-center"><i class="fas fa-download mr-2"></i>Yedek İndir (.db)</a>
+                        <a href="/api/export.csv" class="bg-emerald-600 text-white py-2.5 rounded font-bold hover:bg-emerald-700 text-center"><i class="fas fa-file-csv mr-2"></i>Kataloğu Aktar (CSV)</a>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 h-fit">
+                    <h3 class="text-lg font-bold text-navy-800 mb-4 border-b pb-2"><i class="fas fa-circle-info mr-2 text-slate-500"></i>Uygulama Hakkında</h3>
+                    <p class="text-sm text-slate-600">Kütüphane Takip Sistemi Pro <b id="app-version"></b> — Rust ile yeniden yazılmış masaüstü sürümü. Uygulama tarayıcıya ihtiyaç duymadan kendi penceresinde çalışır, internet bağlantısı gerektirmez.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOOK ADD / EDIT MODAL -->
+    <div id="bookModal" class="fixed inset-0 bg-black/50 hidden z-40 flex items-center justify-center p-2 md:p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl p-5 md:p-6 max-h-[95vh] overflow-y-auto">
+            <h3 id="book-modal-title" class="text-xl font-bold text-navy-900 mb-4 border-b pb-2"></h3>
+            <form id="form-book" onsubmit="saveBook(event)" class="space-y-4">
+                <input type="hidden" id="f-id">
+                <div id="book-fields" class="space-y-4"></div>
+                <fieldset class="border rounded-lg p-4">
+                    <legend class="px-2 text-sm font-bold text-navy-800">Dosyalar</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="text-sm font-medium text-blue-600"><i class="fas fa-image mr-1"></i>Kapak Resmi</label><input type="file" id="f-cover" accept="image/*" class="w-full p-1 border rounded mt-1 text-xs"></div>
+                        <div>
+                            <label class="text-sm font-medium text-purple-600"><i class="fas fa-file-pdf mr-1"></i>E-Kitap / PDF (.pdf, .epub)</label>
+                            <input type="file" id="f-ebook" accept=".pdf,.epub" class="w-full p-1 border rounded mt-1 text-xs">
+                            <div id="f-ebook-current" class="hidden text-xs text-slate-500 mt-1">
+                                <i class="fas fa-paperclip mr-1"></i><span id="f-ebook-name"></span>
+                                <label class="ml-2 text-red-600"><input type="checkbox" id="f-remove-ebook"> Dosyayı kaldır</label>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="flex gap-4 pt-2">
+                    <button type="button" onclick="closeModal('bookModal')" class="w-1/2 bg-slate-300 text-slate-700 py-2.5 rounded font-bold hover:bg-slate-400">İptal</button>
+                    <button type="submit" id="book-save-btn" class="w-1/2 bg-navy-800 text-white py-2.5 rounded font-bold hover:bg-navy-900">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div id="detailModal" class="fixed inset-0 bg-black/50 hidden z-40 flex items-center justify-center p-2 md:p-4" onclick="if(event.target===this)closeModal('detailModal')">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-5 md:p-6 max-h-[95vh] overflow-y-auto">
+            <div class="flex justify-between items-start border-b pb-2 mb-4">
+                <h3 class="text-xl font-bold text-navy-900"><i class="fas fa-circle-info mr-2"></i>Katalog Kaydı</h3>
+                <button onclick="closeModal('detailModal')" class="text-slate-400 hover:text-slate-700 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="detail-body"></div>
+        </div>
+    </div>
+
+    <!-- READING (per book) MODAL -->
+    <div id="readingModal" class="fixed inset-0 bg-black/50 hidden z-40 flex items-center justify-center p-2 md:p-4" onclick="if(event.target===this)closeModal('readingModal')">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-y-auto">
+            <div class="flex justify-between items-start gap-4 p-5 md:p-6 border-b">
+                <div class="flex gap-4 items-start min-w-0" id="rm-head"></div>
+                <button onclick="closeModal('readingModal')" class="text-slate-400 hover:text-slate-700 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-5 md:p-6">
+                <div class="space-y-6">
+                    <section>
+                        <h4 class="font-bold text-navy-800 mb-3"><i class="fas fa-gauge-high mr-2 text-blue-600"></i>Okuma Durumu</h4>
+                        <div class="k-form-grid">
+                            <div><label>Durum</label><select id="rm-status" class="k-input" onchange="rmStatusChanged()"></select></div>
+                            <div><label>Puan</label><div id="rm-stars" class="k-stars"></div></div>
+                            <div><label>Kaçıncı Sayfa</label><input id="rm-page" type="number" min="0" class="k-input" oninput="rmPreview()"></div>
+                            <div><label>Toplam Sayfa</label><input id="rm-total" type="number" min="0" class="k-input" oninput="rmPreview()"></div>
+                            <div><label>Başlama Tarihi</label><input id="rm-start" type="date" class="k-input" oninput="rmPreview()"></div>
+                            <div><label>Bitirme Tarihi</label><input id="rm-end" type="date" class="k-input" oninput="rmPreview()"></div>
+                            <div class="k-preview" id="rm-preview"></div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <button class="k-btn primary lg" onclick="rmSave()"><i class="fas fa-floppy-disk"></i>Kaydet</button>
+                            <button class="k-btn green lg" onclick="rmFinish()"><i class="fas fa-check"></i>Bitirdim</button>
+                            <span id="rm-read-btn"></span>
+                        </div>
+                    </section>
+                    <section>
+                        <h4 class="font-bold text-navy-800 mb-3"><i class="fas fa-clock-rotate-left mr-2 text-slate-500"></i>Okuma Geçmişi</h4>
+                        <div id="rm-log"></div>
+                    </section>
+                </div>
+                <section>
+                    <h4 class="font-bold text-navy-800 mb-3"><i class="fas fa-note-sticky mr-2 text-purple-600"></i>Okuma Notları <span id="rm-note-count" class="k-chip"></span></h4>
+                    <div class="k-note-form mb-4">
+                        <select id="rm-note-kind" class="k-input"><option>Not</option><option>Alıntı</option><option>Soru</option><option>Önemli</option></select>
+                        <input id="rm-note-page" type="number" min="0" class="k-input" placeholder="Sayfa (isteğe bağlı)">
+                        <textarea id="rm-note-text" class="k-input" placeholder="Notunuzu veya alıntıyı yazın..."></textarea>
+                        <div class="row"><button class="k-btn purple" onclick="rmAddNote()"><i class="fas fa-plus"></i>Not Ekle</button></div>
+                    </div>
+                    <div id="rm-notes"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- READER -->
+    <div id="reader" class="fixed inset-0 bg-slate-900 hidden z-50 flex flex-col">
+        <div class="navy-gradient rd-bar shrink-0">
+            <div id="r-title" class="rd-title"></div>
+            <div id="r-pdf-nav" class="rd-group">
+                <button class="rd-btn" onclick="pdfStep(-1)" title="Önceki sayfa"><i class="fas fa-chevron-left"></i></button>
+                <input id="r-page" class="rd-in page" onchange="pdfGoto(this.value)" onkeydown="if(event.key==='Enter')pdfGoto(this.value)">
+                <span id="r-pages" class="rd-lbl">/ 0</span>
+                <button class="rd-btn" onclick="pdfStep(1)" title="Sonraki sayfa"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div id="r-pdf-zoom" class="rd-group">
+                <button class="rd-btn" onclick="pdfZoom(-1)" title="Uzaklaştır"><i class="fas fa-magnifying-glass-minus"></i></button>
+                <button class="rd-btn" onclick="pdfZoom(0)" title="Sığdırma modu: otomatik / sayfa genişliği / tam sayfa" id="r-zoom-lbl">%100</button>
+                <button class="rd-btn" onclick="pdfZoom(1)" title="Yakınlaştır"><i class="fas fa-magnifying-glass-plus"></i></button>
+            </div>
+            <div id="r-epub" class="rd-group">
+                <button class="rd-btn" onclick="chapter(-1)" title="Önceki bölüm"><i class="fas fa-chevron-left"></i></button>
+                <select id="r-toc" onchange="chapter(0, this.selectedIndex)" class="rd-sel"></select>
+                <button class="rd-btn" onclick="chapter(1)" title="Sonraki bölüm"><i class="fas fa-chevron-right"></i></button>
+                <button class="rd-btn" onclick="fontSize(-10)" title="Yazıyı küçült"><i class="fas fa-font"></i><i class="fas fa-minus" style="font-size:8px"></i></button>
+                <button class="rd-btn" onclick="fontSize(10)" title="Yazıyı büyüt"><i class="fas fa-font"></i><i class="fas fa-plus" style="font-size:8px"></i></button>
+                <button class="rd-btn" onclick="cycleTheme()" title="Okuma teması (açık / sepya / koyu)"><i class="fas fa-circle-half-stroke"></i></button>
+            </div>
+            <div class="rd-search" title="Kitap içinde ara (Ctrl+F)">
+                <i class="fas fa-magnifying-glass"></i>
+                <input id="r-q" placeholder="Kitap içinde ara..." autocomplete="off" onkeydown="searchKey(event)">
+                <span id="r-cnt" class="cnt"></span>
+                <button onclick="searchStep(-1)" title="Önceki sonuç (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
+                <button onclick="searchStep(1)" title="Sonraki sonuç (Enter)"><i class="fas fa-chevron-down"></i></button>
+                <button onclick="clearSearch()" title="Aramayı temizle"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="rd-group">
+                <button id="r-btn-search" class="rd-btn" onclick="togglePanel('search')" title="Arama sonuçları listesi"><i class="fas fa-list"></i></button>
+                <button id="r-btn-notes" class="rd-btn" onclick="togglePanel('notes')" title="Okuma notları"><i class="fas fa-note-sticky"></i><span id="r-note-n"></span></button>
+                <a id="r-dl" class="rd-btn" title="İndir"><i class="fas fa-download"></i></a>
+                <button onclick="closeReader()" class="rd-btn close" title="Kapat (Esc)"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div class="rd-main">
+            <div class="rd-frame-wrap">
+                <iframe id="r-frame"></iframe>
+                <div id="r-loading" class="rd-loading hidden"><i class="fas fa-spinner fa-spin"></i> Yükleniyor...</div>
+            </div>
+            <aside id="r-panel" class="rd-panel hidden">
+                <div class="rd-tabs">
+                    <button id="r-tab-search" onclick="showPanelTab('search')"><i class="fas fa-magnifying-glass mr-1"></i>Arama</button>
+                    <button id="r-tab-notes" onclick="showPanelTab('notes')"><i class="fas fa-note-sticky mr-1"></i>Notlar</button>
+                    <button onclick="togglePanel()" title="Paneli kapat" style="flex:0 0 42px"><i class="fas fa-xmark"></i></button>
+                </div>
+                <div id="r-pane-search" class="rd-pane"></div>
+                <div id="r-pane-notes" class="rd-pane hidden">
+                    <div class="k-note-form mb-3">
+                        <select id="r-note-kind" class="k-input"><option>Not</option><option>Alıntı</option><option>Soru</option><option>Önemli</option></select>
+                        <input id="r-note-page" type="number" min="0" class="k-input" placeholder="Sayfa">
+                        <textarea id="r-note-text" class="k-input" placeholder="Not yazın veya metin seçip 'Seçili metni al' deyin..."></textarea>
+                        <div class="row">
+                            <button class="k-btn ghost" onclick="grabSelection()" title="Kitapta seçtiğiniz metni alıntı olarak ekler"><i class="fas fa-quote-left"></i>Seçili metni al</button>
+                            <button class="k-btn purple" onclick="readerAddNote()"><i class="fas fa-plus"></i>Ekle</button>
+                        </div>
+                    </div>
+                    <div id="r-notes"></div>
+                </div>
+            </aside>
+        </div>
+        <div class="rd-status shrink-0">
+            <span id="r-pos"></span>
+            <div class="k-progress"><span id="r-bar" style="width:0%"></span></div>
+            <span id="r-book-progress"></span>
+            <label id="r-auto-wrap" title="PDF'te ilerledikçe kitabın 'Kaçıncı Sayfa' bilgisi otomatik güncellenir"><input type="checkbox" id="r-auto" onchange="savePref('pdf_auto', this.checked ? '1' : '0')"> İlerlemeyi okuma durumuna işle</label>
+            <button id="r-finish" class="k-btn green hidden" onclick="readerFinish()"><i class="fas fa-check"></i>Bitirdim</button>
+        </div>
+    </div>
+
+    <div id="k-toasts" class="k-toasts"></div>
+
+    <script>
+        const DEFAULT_LIB = 'Karakaya Kütüphanesi';
+        const STATUSES = ['Okunmadı', 'Okunacak', 'Okunuyor', 'Okundu', 'Yarım Bırakıldı'];
+        const STATUS_META = {
+            'Okunmadı': ['fa-book', 'st-none'], 'Okunacak': ['fa-list-check', 'st-todo'], 'Okunuyor': ['fa-bookmark', 'st-reading'],
+            'Okundu': ['fa-check', 'st-done'], 'Yarım Bırakıldı': ['fa-circle-pause', 'st-paused']
+        };
+        const LISTS = {
+            language: ['Türkçe', 'İngilizce', 'Almanca', 'Fransızca', 'Arapça', 'Farsça', 'Osmanlı Türkçesi', 'Rusça', 'İspanyolca', 'İtalyanca', 'Çok Dilli'],
+            gmt: ['Metin', 'Elektronik Kaynak', 'Ses Kaydı', 'Video Kaydı', 'Harita', 'Nota', 'Grafik Materyal', 'Mikroform', 'Karma Materyal', 'Kit', 'Nesne (Realia)', 'El Yazması'],
+            content_type: ['Metin', 'Durağan Görüntü', 'Kartografik Görüntü', 'Nota', 'Konuşma Sesi', 'Müzik Sesi', 'İki Boyutlu Hareketli Görüntü', 'Bilgisayar Verisi', 'Üç Boyutlu Form', 'Diğer'],
+            carrier_type: ['Ciltli (Sert Kapak)', 'Karton Kapak', 'Amerikan Cilt', 'Bez Cilt', 'Deri Cilt', 'Spiralli', 'Broşür', 'Çevrimiçi Kaynak', 'Bilgisayar Diski (CD/DVD)', 'Mikrofiş', 'Diğer'],
+            acquisition_type: ['Satın Alma', 'Bağış', 'Değişim', 'Devir', 'Yayınevi Hediyesi', 'Derleme', 'Diğer']
+        };
+        // [anahtar, etiket, seçenekler]  -- anahtarlar veritabanı sütunlarıyla aynıdır
+        const SECTIONS = [
+            ['Temel Bilgiler', [['title', 'Kitap Adı', {req: 1, span: 2}], ['original_title', 'Özgün Ad'], ['author', 'Yazar', {req: 1}],
+                ['series_title', 'Seri Başlığı'], ['publisher', 'Yayınevi'], ['pub_place', 'Yayım Yeri'], ['pub_year', 'Yayım Yılı'],
+                ['isbn', 'ISBN'], ['language', 'Eser Dili', {list: 1}]]],
+            ['Fiziksel Tanım', [['page_count', 'Sayfa Sayısı', {type: 'number'}], ['dimensions', 'Boyutlar', {ph: 'Örn: 13,5 x 21 cm'}],
+                ['gmt', 'General Material Type (GMT)', {list: 1}], ['content_type', 'İçerik Tipi', {list: 1}], ['carrier_type', 'Taşıyıcı (Kapak) Tipi', {list: 1}]]],
+            ['Konu ve Sınıflama', [['category', 'Kategori'], ['subject', 'Konu', {span: 2}], ['classification', 'Sınıflandırma', {ph: 'Örn: DDC 813.54 / LC PS3545'}],
+                ['shelf_num', 'Raf Numarası', {ph: 'Örn: A-12'}]]],
+            ['Envanter ve Edinme', [['inventory_code', 'Envanter Kodu'], ['acquisition_date', 'Alım Tarihi', {type: 'date'}],
+                ['acquisition_type', 'Alım Türü', {list: 1}], ['copies', 'Kopya Sayısı', {type: 'number', req: 1, min: 1}]]],
+            ['Okuma Durumu', [['reading_status', 'Okunma Durumu', {sel: STATUSES}], ['current_page', 'Kaçıncı Sayfa', {type: 'number'}],
+                ['rating', 'Puanım', {stars: 1}], ['reading_start', 'Okumaya Başlama', {type: 'date'}], ['reading_end', 'Bitirme Tarihi', {type: 'date'}],
+                ['_progress', '', {preview: 1, span: 3}]]],
+            ['Açıklamalar', [['notes', 'Açıklamalar', {area: 1, span: 3}]]]
+        ];
+        const FIELDS = SECTIONS.flatMap(s => s[1]).filter(f => !f[0].startsWith('_'));
+        const $ = id => document.getElementById(id);
+        const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+        const isEpub = b => (b.ebook_file || '').toLowerCase().endsWith('.epub');
+        const pad = n => String(n).padStart(2, '0');
+        const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+        const fmtDate = s => s && /^\d{4}-\d{2}-\d{2}/.test(s) ? `${s.slice(8, 10)}.${s.slice(5, 7)}.${s.slice(0, 4)}` : (s || '');
+        const dayNum = s => Math.floor(Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 864e5);
+        const dayStr = n => new Date(n * 864e5).toISOString().slice(0, 10);
+        const cover = b => esc(b.cover_image || '/static/kapak-yok.svg');
+        let allBooks = [], prefs = {}, summary = null, allNotes = [];
+
+        // ---- Arama katlaması (Rust tarafındaki fold ile birebir aynı): büyük/küçük harf ve Türkçe karakter duyarsız ----
+        const FOLD = {'ş': 's', 'ç': 'c', 'ğ': 'g', 'ö': 'o', 'ô': 'o', 'ò': 'o', 'ó': 'o', 'õ': 'o', 'ü': 'u', 'û': 'u', 'ù': 'u', 'ú': 'u',
+            'â': 'a', 'à': 'a', 'á': 'a', 'ä': 'a', 'ã': 'a', 'å': 'a', 'î': 'i', 'ì': 'i', 'í': 'i', 'ï': 'i', 'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+            'ñ': 'n', ' ': ' ', '\t': ' ', '\n': ' ', '\r': ' ', '’': "'", '‘': "'", 'ʼ': "'"};
+        function fold(s) {
+            let o = '';
+            for (let i = 0; i < s.length; i++) {
+                const c = s[i];
+                if (c === 'İ' || c === 'I' || c === 'ı') { o += 'i'; continue; }
+                let l = c.toLowerCase();
+                if (l.length !== 1) l = c;
+                o += FOLD[l] || l;
+            }
+            return o;
+        }
+        window.kysFold = fold;
+
+        // ---- İletişim kutuları ve bildirimler (tarayıcı alert/confirm yerine) ----
+        function uiDialog({title = 'Bilgi', message = '', ok = 'Tamam', cancel = null, danger = false, icon = 'fa-circle-info'}) {
+            return new Promise(resolve => {
+                const w = document.createElement('div');
+                w.className = 'k-dialog-wrap';
+                w.innerHTML = `<div class="k-dialog" role="dialog"><h4><i class="fas ${icon} ${danger ? 'text-red-600' : 'text-blue-600'}"></i>${esc(title)}</h4><p>${esc(message)}</p>
+                    <div class="btns">${cancel ? `<button class="k-btn ghost lg" data-v="0">${esc(cancel)}</button>` : ''}<button class="k-btn ${danger ? 'danger' : 'primary'} lg" data-v="1">${esc(ok)}</button></div></div>`;
+                const done = v => { w.remove(); document.removeEventListener('keydown', key, true); resolve(v); };
+                const key = e => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } if (e.key === 'Enter' && !(document.activeElement && w.contains(document.activeElement) && document.activeElement.tagName === 'BUTTON')) { e.preventDefault(); done(true); } };
+                w.addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) done(b.dataset.v === '1'); else if (e.target === w && cancel) done(false); });
+                document.addEventListener('keydown', key, true);
+                document.body.appendChild(w);
+                w.querySelector('button[data-v="1"]').focus();
+            });
+        }
+        const uiAlert = (message, title = 'Bilgi') => uiDialog({title, message, icon: 'fa-circle-exclamation'});
+        const uiConfirm = (message, ok = 'Evet', danger = true) => uiDialog({title: 'Onay', message, ok, cancel: 'Vazgeç', danger, icon: 'fa-triangle-exclamation'});
+        function toast(msg, type = 'ok') {
+            const t = document.createElement('div');
+            t.className = 'k-toast ' + type;
+            t.innerHTML = `<i class="fas ${type === 'ok' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i><span>${esc(msg)}</span>`;
+            $('k-toasts').appendChild(t);
+            setTimeout(() => t.remove(), type === 'ok' ? 2600 : 5000);
+        }
+        async function api(url, opts = {}) {
+            if (opts.json !== undefined) { opts.method = opts.method || 'POST'; opts.headers = {'Content-Type': 'application/json'}; opts.body = JSON.stringify(opts.json); delete opts.json; }
+            try { return await (await fetch(url, opts)).json(); } catch (e) { return {success: false, message: 'Bağlantı hatası oluştu.'}; }
+        }
+        function savePref(key, value) { prefs[key] = String(value); api('/api/settings', {json: {[key]: String(value)}}); }
+
+        // ---- Okuma durumu yardımcıları ----
+        function progressOf(b) {
+            const total = Math.max(0, parseInt(b.page_count) || 0);
+            let page = Math.max(0, parseInt(b.current_page) || 0);
+            if (b.reading_status === 'Okundu' && total) page = total;
+            if (total && page > total) page = total;
+            return {total, page, pct: total ? Math.round(page * 100 / total) : null};
+        }
+        function statusBadge(st, extra = '') {
+            const s = STATUSES.includes(st) ? st : 'Okunmadı';
+            const [ic, cls] = STATUS_META[s];
+            return `<span class="k-badge ${cls}"><i class="fas ${ic}"></i>${s}${extra}</span>`;
+        }
+        function progressBar(b, size = '') {
+            const st = b.reading_status || 'Okunmadı';
+            const p = progressOf(b);
+            if (st === 'Okunmadı' || st === 'Okunacak') return '';
+            const cls = st === 'Okundu' ? 'is-done' : st === 'Yarım Bırakıldı' ? 'is-paused' : '';
+            if (p.pct === null) {
+                return p.page ? `<div class="k-progress-meta"><span><b>${p.page}.</b> sayfa</span><span>toplam sayfa girilmemiş</span></div>` : '';
+            }
+            return `<div class="k-progress ${size} ${cls}" title="%${p.pct}"><span style="width:${p.pct}%"></span></div>` +
+                `<div class="k-progress-meta"><span><b>%${p.pct}</b></span><span>${p.page} / ${p.total} sayfa</span></div>`;
+        }
+        function starsHtml(v, readonly = true, cb = '') {
+            v = parseInt(v) || 0;
+            let h = `<span class="k-stars ${readonly ? 'readonly' : ''}">`;
+            for (let i = 1; i <= 5; i++) h += `<button type="button" class="${i <= v ? 'on' : ''}" ${readonly ? 'tabindex="-1"' : `onclick="${cb}(${i === v ? 0 : i})"`} title="${i} yıldız"><i class="fas fa-star"></i></button>`;
+            return h + '</span>';
+        }
+        function paceInfo(b) {
+            // Ortalama günlük okuma ve tahmini bitiş
+            const p = progressOf(b);
+            if (!b.reading_start || !p.page) return null;
+            const days = Math.max(1, dayNum(todayStr()) - dayNum(b.reading_start) + 1);
+            const pace = p.page / days;
+            const info = {days, pace};
+            if (p.total && p.page < p.total && pace > 0) info.eta = dayStr(dayNum(todayStr()) + Math.ceil((p.total - p.page) / pace));
+            return info;
+        }
+
+        function buildForm() {
+            let h = Object.entries(LISTS).map(([k, arr]) => `<datalist id="dl-${k}">${arr.map(v => `<option value="${v}">`).join('')}</datalist>`).join('');
+            SECTIONS.forEach(([name, fields]) => {
+                h += `<fieldset class="border rounded-lg p-4"><legend class="px-2 text-sm font-bold text-navy-800">${name}</legend><div class="grid grid-cols-1 md:grid-cols-3 gap-4">`;
+                fields.forEach(([k, label, o = {}]) => {
+                    const cls = 'w-full p-2 border rounded mt-1 bg-white';
+                    let inp;
+                    if (o.preview) { h += `<div id="w-${k}" class="md:col-span-3"><div class="k-preview" id="f-progress-preview"></div></div>`; return; }
+                    if (o.area) inp = `<textarea id="f-${k}" rows="7" class="${cls}" placeholder="Eserle ilgili notlar, fiziksel durum, ek bilgiler..."></textarea>`;
+                    else if (o.sel) inp = `<select id="f-${k}" onchange="readingFormChanged(true)" class="${cls}">${o.sel.map(v => `<option>${v}</option>`).join('')}</select>`;
+                    else if (o.stars) inp = `<input type="hidden" id="f-${k}" value="0"><div id="f-stars" class="mt-2"></div>`;
+                    else inp = `<input id="f-${k}" type="${o.type || 'text'}" ${o.type === 'number' ? `min="${o.min || 0}"` : ''} ${o.list ? `list="dl-${k}"` : ''} ${o.req ? 'required' : ''} placeholder="${o.ph || ''}" class="${cls}">`;
+                    h += `<div id="w-${k}" class="${o.span === 3 ? 'md:col-span-3' : o.span === 2 ? 'md:col-span-2' : ''}"><label class="text-sm font-medium">${label}${o.req ? ' <span class="text-red-500">*</span>' : ''}</label>${inp}</div>`;
+                });
+                h += '</div></fieldset>';
+            });
+            $('book-fields').innerHTML = h;
+            ['f-current_page', 'f-page_count', 'f-reading_start', 'f-reading_end'].forEach(id => $(id).addEventListener('input', () => readingFormChanged(false)));
+            $('filter-status').innerHTML = '<option value="Tümü">Tüm Durumlar</option>' + STATUSES.map(s => `<option>${s}</option>`).join('');
+            $('rm-status').innerHTML = STATUSES.map(s => `<option>${s}</option>`).join('');
+        }
+
+        function setFormRating(v) { $('f-rating').value = v; $('f-stars').innerHTML = starsHtml(v, false, 'setFormRating'); }
+
+        // Formdaki okuma alanlarını duruma göre gösterir/gizler ve ilerleme önizlemesini çizer
+        function readingFormChanged(statusChanged) {
+            const st = $('f-reading_status').value;
+            const active = st === 'Okunuyor' || st === 'Yarım Bırakıldı';
+            const started = active || st === 'Okundu';
+            $('w-current_page').classList.toggle('hidden', !active);
+            $('w-reading_start').classList.toggle('hidden', !started);
+            $('w-reading_end').classList.toggle('hidden', st !== 'Okundu');
+            $('w-rating').classList.toggle('hidden', !started);
+            $('w-_progress').classList.toggle('hidden', !started);
+            if (statusChanged) {
+                if (!started) { $('f-current_page').value = 0; $('f-reading_start').value = ''; $('f-reading_end').value = ''; }
+                if (started && !$('f-reading_start').value && st !== 'Okundu') $('f-reading_start').value = todayStr();
+                if (st === 'Okundu' && !$('f-reading_end').value) $('f-reading_end').value = todayStr();
+                if (st === 'Okundu' && +$('f-page_count').value) $('f-current_page').value = $('f-page_count').value;
+            }
+            const fake = {reading_status: st, page_count: $('f-page_count').value, current_page: $('f-current_page').value, reading_start: $('f-reading_start').value};
+            const p = progressOf(fake);
+            let h = progressBar(fake, 'lg');
+            if (!h) h = '<span class="k-chip">İlerleme çubuğu için <b>Sayfa Sayısı</b> (Fiziksel Tanım) ve <b>Kaçıncı Sayfa</b> alanlarını doldurun.</span>';
+            else if (p.pct === null) h += '<p class="k-chip mt-1">İlerleme yüzdesi için Fiziksel Tanım bölümündeki <b>Sayfa Sayısı</b> alanını doldurun.</p>';
+            const pace = paceInfo(fake);
+            if (pace && st === 'Okunuyor') h += `<div class="k-facts"><span><i class="fas fa-gauge"></i>Günlük ort. <b>${pace.pace.toFixed(1)}</b> sayfa</span>${pace.eta ? `<span><i class="fas fa-flag-checkered"></i>Tahmini bitiş <b>${fmtDate(pace.eta)}</b></span>` : ''}</div>`;
+            $('f-progress-preview').innerHTML = h;
+        }
+
+        function toggleMobileMenu() {
+            $('sidebar').classList.toggle('-translate-x-full');
+            $('sidebar-overlay').classList.toggle('hidden');
+            const open = !$('sidebar').classList.contains('-translate-x-full');
+            $('menu-icon').className = 'fas ' + (open ? 'fa-times' : 'fa-bars');
+        }
+
+        let currentTab = 'dashboard';
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            $(tabId).classList.add('active');
+            document.querySelectorAll('aside nav button').forEach(btn => {
+                btn.classList.remove('bg-white/25', 'text-white');
+                btn.classList.add('hover:bg-white/10', 'text-slate-300');
+            });
+            $('btn-' + tabId).classList.remove('hover:bg-white/10', 'text-slate-300');
+            $('btn-' + tabId).classList.add('bg-white/25', 'text-white');
+            if (window.innerWidth < 768 && !$('sidebar').classList.contains('-translate-x-full')) toggleMobileMenu();
+            refreshAllData();
+        }
+
+        function closeModal(id) { $(id).classList.add('hidden'); if (id === 'readingModal' && rm.dirty) { rm.dirty = false; refreshAllData(); } }
+
+        async function refreshAllData() {
+            fetchSettings(); fetchStats(); fetchMembers(); fetchLoans();
+            await fetchBooks();
+            if (currentTab === 'reading' || currentTab === 'dashboard') fetchReading();
+        }
+
+        async function fetchSettings() {
+            const data = await api('/api/settings');
+            prefs = data;
+            const libName = data.library_name || DEFAULT_LIB;
+            document.title = libName + ' | Yönetim Sistemi Pro';
+            try { if (window.ipc) window.ipc.postMessage('title:' + document.title); } catch (e) {}
+            $('sidebar-lib-title').innerHTML = $('mobile-lib-title').innerHTML = '<i class="fas fa-book-open mr-2"></i>' + esc(libName);
+            $('welcome-lib-name').innerText = libName + ' - Yönetim ve Takip Paneli';
+            if (document.activeElement !== $('setting-lib-name')) $('setting-lib-name').value = libName;
+            if (document.activeElement !== $('setting-goal')) $('setting-goal').value = +data.reading_goal || '';
+            $('data-dir').innerText = data.data_dir || '';
+            $('app-version').innerText = data.version ? 'v' + data.version : '';
+        }
+
+        async function updateSettings(e) {
+            e.preventDefault();
+            const data = await api('/api/settings', {json: {library_name: $('setting-lib-name').value, reading_goal: $('setting-goal').value}});
+            if (data.success) toast('Ayarlar kaydedildi.'); else uiAlert(data.message);
+            fetchSettings();
+        }
+
+        async function mergeDatabase(e) {
+            e.preventDefault();
+            const fileInput = $('merge-db-file');
+            if (fileInput.files.length === 0) return;
+            const formData = new FormData();
+            formData.append('db_file', fileInput.files[0]);
+            const btn = $('merge-btn'), resultDiv = $('merge-result');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Birleştiriliyor...';
+            const data = await api('/api/merge-db', {method: 'POST', body: formData});
+            if (data.success) { fileInput.value = ''; refreshAllData(); }
+            resultDiv.className = 'p-3 rounded text-sm font-medium ' + (data.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700');
+            resultDiv.innerText = data.message;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-database"></i> Veritabanlarını Birleştir';
+        }
+
+        async function fetchStats() {
+            const d = await api('/api/stats');
+            $('stat-titles').innerText = d.total_titles ?? 0;
+            $('stat-books').innerText = d.total_books ?? 0;
+            $('stat-ebooks').innerText = d.ebooks ?? 0;
+            $('stat-members').innerText = d.total_members ?? 0;
+            $('stat-loans').innerText = d.active_loans ?? 0;
+            $('stat-overdue').innerText = d.overdue_loans ?? 0;
+            $('stat-reading').innerText = d.reading_now ?? 0;
+            $('stat-finished').innerText = d.finished_year ?? 0;
+        }
+
+        async function fetchBooks() {
+            const list = await api('/api/books');
+            allBooks = Array.isArray(list) ? list : [];
+            filterBooks();
+            $('l-book').innerHTML = '<option value="">-- Kitap Seçin --</option>' + allBooks.filter(b => b.available_copies > 0)
+                .map(b => `<option value="${b.id}">${esc(b.title)} (${esc(b.author)}) - [${esc(b.library_source || DEFAULT_LIB)}]</option>`).join('');
+        }
+
+        function filterBooks() {
+            const q = fold($('search-input').value.trim());
+            const st = $('filter-status').value, eb = $('filter-ebook').value;
+            const keys = FIELDS.map(f => f[0]).concat('library_source');
+            const filtered = allBooks.filter(b =>
+                (q === '' || keys.some(k => fold(String(b[k] || '')).includes(q))) &&
+                (st === 'Tümü' || (b.reading_status || 'Okunmadı') === st) &&
+                (eb === '' || (eb === '1') === !!b.ebook_file));
+            $('book-count').innerText = `(${filtered.length} / ${allBooks.length})`;
+            $('table-books').innerHTML = filtered.map(b => {
+                const rs = b.reading_status || 'Okunmadı';
+                const rating = +b.rating ? `<div class="mt-1">${starsHtml(b.rating)}</div>` : '';
+                const notes = +b.note_count ? `<button onclick="openReading(${b.id})" class="k-chip mt-1 hover:text-purple-600" title="Okuma notları"><i class="fas fa-note-sticky text-purple-600"></i>${b.note_count} not</button>` : '';
+                return `<tr class="border-b hover:bg-slate-50">
+                    <td class="p-3 text-slate-500 font-bold">#${b.id}</td>
+                    <td class="p-3"><div class="flex items-start gap-3">
+                        <img src="${cover(b)}" class="w-12 h-16 object-cover rounded shadow-sm border shrink-0 bg-white">
+                        <div>
+                            <p class="font-bold text-navy-900">${esc(b.title)} ${b.ebook_file ? `<i class="fas ${isEpub(b) ? 'fa-tablet-screen-button' : 'fa-file-pdf'} text-purple-500 ml-1" title="E-kitap mevcut"></i>` : ''}</p>
+                            ${b.original_title ? `<p class="text-xs italic text-slate-500">${esc(b.original_title)}</p>` : ''}
+                            <p class="text-xs text-slate-500 mb-1">${esc(b.author)}${b.series_title ? ` · <i class="fas fa-layer-group"></i> ${esc(b.series_title)}` : ''}</p>
+                            <p class="text-[10px] text-slate-400"><i class="fas fa-barcode mr-1"></i>${esc(b.isbn || '-')} <br><i class="fas fa-building mr-1 mt-1"></i>${esc(b.publisher || '-')}${b.pub_place ? ', ' + esc(b.pub_place) : ''}${b.pub_year ? ', ' + esc(b.pub_year) : ''}</p>
+                        </div></div></td>
+                    <td class="p-3 text-xs">
+                        <p class="font-semibold text-slate-700">Env: ${esc(b.inventory_code || '-')}</p>
+                        <p class="text-slate-500 mt-1">Sınıf: ${esc(b.classification || '-')}</p>
+                        <p class="text-slate-500 mt-1">${esc(b.category || '-')}</p>
+                        <p class="font-semibold text-navy-800 mt-1"><i class="fas fa-layer-group mr-1"></i>Raf: ${esc(b.shelf_num || '-')}</p>
+                    </td>
+                    <td class="p-3"><span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100"><i class="fas fa-university mr-1.5 text-indigo-500"></i>${esc(b.library_source || DEFAULT_LIB)}</span></td>
+                    <td class="p-3"><div class="cursor-pointer" onclick="openReading(${b.id})" title="Okuma takibini aç">${statusBadge(rs)}<div class="mt-2">${progressBar(b, 'sm')}</div></div>${rating}${notes}</td>
+                    <td class="p-3"><span class="${b.available_copies > 0 ? 'text-green-600' : 'text-red-600'} font-bold text-lg">${b.available_copies}</span> <span class="text-slate-400 text-sm">/ ${b.total_copies}</span></td>
+                    <td class="p-3 text-center space-x-1 whitespace-nowrap">
+                        ${b.ebook_file ? `<button onclick="openReader(${b.id})" class="text-purple-600 hover:text-purple-800 bg-purple-50 p-2 rounded" title="Oku"><i class="fas fa-book-open-reader"></i></button>` : ''}
+                        <button onclick="openReading(${b.id})" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 p-2 rounded" title="Okuma takibi ve notlar"><i class="fas fa-chart-line"></i></button>
+                        <button onclick="showDetail(${b.id})" class="text-slate-600 hover:text-slate-800 bg-slate-100 p-2 rounded" title="Katalog kaydı"><i class="fas fa-eye"></i></button>
+                        <button onclick="openBookModal(${b.id})" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded" title="Düzenle"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteBook(${b.id})" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded" title="Sil"><i class="fas fa-trash"></i></button>
+                    </td></tr>`;
+            }).join('') || `<tr><td colspan="7" class="k-empty"><i class="fas fa-book"></i>${allBooks.length ? 'Aramaya uyan eser bulunamadı.' : 'Henüz eser eklenmedi. "Yeni Eser Ekle" ile başlayın.'}</td></tr>`;
+        }
+
+        function openBookModal(id) {
+            const b = allBooks.find(x => x.id === id);
+            $('form-book').reset();
+            $('f-id').value = b ? b.id : '';
+            $('book-modal-title').innerHTML = b ? '<i class="fas fa-edit mr-2"></i>Eser Bilgilerini Düzenle' : '<i class="fas fa-plus mr-2"></i>Yeni Eser Ekle';
+            FIELDS.forEach(([k]) => { if (b) $('f-' + k).value = b[k == 'copies' ? 'total_copies' : k] ?? ''; });
+            if (!b) { $('f-copies').value = 1; $('f-acquisition_date').value = todayStr(); }
+            if (!STATUSES.includes($('f-reading_status').value)) $('f-reading_status').value = 'Okunmadı';
+            if (!$('f-page_count').value || $('f-page_count').value === '0') $('f-page_count').value = b && +b.page_count ? b.page_count : '';
+            setFormRating(b ? (+b.rating || 0) : 0);
+            $('f-ebook-current').classList.toggle('hidden', !(b && b.ebook_file));
+            $('f-ebook-name').innerText = b && b.ebook_file ? b.ebook_file.replace(/^ekitap_\d+_/, '') : '';
+            readingFormChanged(false);
+            $('bookModal').classList.remove('hidden');
+        }
+
+        async function saveBook(e) {
+            e.preventDefault();
+            const id = $('f-id').value, fd = new FormData();
+            FIELDS.forEach(([k]) => fd.append(k, $('f-' + k).value));
+            if ($('f-cover').files.length) fd.append('cover_file', $('f-cover').files[0]);
+            if ($('f-ebook').files.length) fd.append('ebook_file', $('f-ebook').files[0]);
+            if ($('f-remove-ebook').checked) fd.append('remove_ebook', '1');
+            const btn = $('book-save-btn');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+            const r = await api(id ? `/api/books/${id}` : '/api/books', {method: id ? 'PUT' : 'POST', body: fd});
+            if (r.success) { closeModal('bookModal'); toast(r.message || 'Kaydedildi.'); refreshAllData(); } else uiAlert(r.message || 'İşlem başarısız.', 'Kaydedilemedi');
+            btn.disabled = false; btn.innerText = 'Kaydet';
+        }
+
+        function showDetail(id) {
+            const b = allBooks.find(x => x.id === id);
+            if (!b) return;
+            const row = (l, v, raw) => v === '' || v == null ? '' : `<div class="py-1.5 border-b border-slate-100 grid grid-cols-3 gap-2"><dt class="text-slate-500">${l}</dt><dd class="col-span-2 font-medium whitespace-pre-wrap break-words">${raw ? v : esc(v)}</dd></div>`;
+            let h = `<div class="flex flex-col sm:flex-row gap-5"><img src="${cover(b)}" class="w-32 h-44 object-cover rounded shadow border self-start bg-white"><dl class="flex-1 text-sm">`;
+            const skip = ['copies', 'current_page', 'notes', 'reading_status', 'rating', 'reading_start', 'reading_end'];
+            FIELDS.forEach(([k, l]) => { if (!skip.includes(k)) h += row(l, b[k]); });
+            h += row('Stok', `${b.available_copies} / ${b.total_copies}`) + row('Kütüphane / Kaynak', b.library_source);
+            h += row('Okuma Durumu', statusBadge(b.reading_status) + `<div class="mt-2" style="max-width:320px">${progressBar(b)}</div>`, true);
+            if (+b.rating) h += row('Puanım', starsHtml(b.rating), true);
+            if (b.reading_start) h += row('Okumaya Başlama', fmtDate(b.reading_start));
+            if (b.reading_end) h += row('Bitirme Tarihi', fmtDate(b.reading_end));
+            h += row('Açıklamalar', b.notes);
+            h += '</dl></div><div class="flex flex-col sm:flex-row gap-3 mt-4">';
+            h += `<button onclick="closeModal('detailModal');openReading(${b.id})" class="flex-1 bg-indigo-50 text-indigo-700 py-2.5 rounded font-bold hover:bg-indigo-100"><i class="fas fa-chart-line mr-2"></i>Okuma Takibi ve Notlar${+b.note_count ? ` (${b.note_count})` : ''}</button>`;
+            if (b.ebook_file) h += `<button onclick="closeModal('detailModal');openReader(${b.id})" class="flex-1 bg-purple-600 text-white py-2.5 rounded font-bold hover:bg-purple-700"><i class="fas fa-book-open-reader mr-2"></i>E-Kitabı Oku</button>`;
+            $('detail-body').innerHTML = h + '</div>';
+            $('detailModal').classList.remove('hidden');
+        }
+
+        async function deleteBook(id) {
+            if (!await uiConfirm('Silmek istediğinize emin misiniz?\n(Eklenmiş e-kitap dosyası ve okuma notları da silinir)', 'Sil')) return;
+            const data = await api(`/api/books/${id}`, {method: 'DELETE'});
+            if (!data.success) uiAlert(data.message); else toast('Eser silindi.');
+            refreshAllData();
+        }
+
+        // ================= OKUMA TAKİBİ =================
+        async function fetchReading() {
+            const [s, notes] = await Promise.all([api('/api/reading/summary'), api('/api/notes')]);
+            summary = s; allNotes = Array.isArray(notes) ? notes : [];
+            renderReading();
+        }
+
+        function readingCard(b, compact) {
+            const p = progressOf(b), pace = paceInfo(b);
+            const facts = [];
+            if (b.reading_start) facts.push(`<span><i class="fas fa-calendar"></i>Başlama <b>${fmtDate(b.reading_start)}</b></span>`);
+            if (pace) facts.push(`<span><i class="fas fa-hourglass-half"></i><b>${pace.days}</b> gündür</span>`, `<span><i class="fas fa-gauge"></i>Günlük ort. <b>${pace.pace.toFixed(1)}</b> syf</span>`);
+            if (pace && pace.eta && b.reading_status === 'Okunuyor') facts.push(`<span><i class="fas fa-flag-checkered"></i>Tahmini bitiş <b>${fmtDate(pace.eta)}</b></span>`);
+            if (b.last_read) facts.push(`<span><i class="fas fa-clock-rotate-left"></i>Son güncelleme <b>${fmtDate(b.last_read)}</b></span>`);
+            return `<div class="k-reading">
+                <img src="${cover(b)}" class="cursor-pointer" onclick="openReading(${b.id})">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0"><p class="t truncate cursor-pointer" onclick="openReading(${b.id})">${esc(b.title)}</p><p class="a truncate">${esc(b.author)}</p></div>
+                        ${statusBadge(b.reading_status)}
+                    </div>
+                    <div class="mt-2">${progressBar(b, 'lg') || '<span class="k-chip">Henüz sayfa girilmedi</span>'}</div>
+                    ${compact ? '' : `<div class="k-facts">${facts.join('')}</div>`}
+                    <div class="k-actions">
+                        <input type="number" min="0" class="k-input num" value="${p.page || ''}" placeholder="Sayfa" onkeydown="if(event.key==='Enter')quickPage(this, ${b.id})">
+                        <button class="k-btn primary" onclick="quickPage(this, ${b.id})"><i class="fas fa-floppy-disk"></i>Sayfayı Kaydet</button>
+                        <button class="k-btn ghost" onclick="quickPage(this, ${b.id}, 10)">+10</button>
+                        <button class="k-btn ghost" onclick="quickPage(this, ${b.id}, 25)">+25</button>
+                        ${b.reading_status === 'Yarım Bırakıldı' ? `<button class="k-btn ghost" onclick="setStatus(${b.id},'Okunuyor')"><i class="fas fa-play"></i>Devam Et</button>` : ''}
+                        <button class="k-btn green" onclick="setStatus(${b.id},'Okundu')"><i class="fas fa-check"></i>Bitirdim</button>
+                        <button class="k-btn ghost" onclick="openReading(${b.id})"><i class="fas fa-note-sticky"></i>Notlar${+b.note_count ? ` (${b.note_count})` : ''}</button>
+                        ${b.ebook_file ? `<button class="k-btn purple" onclick="openReader(${b.id})"><i class="fas fa-book-open-reader"></i>Oku</button>` : ''}
+                    </div>
+                </div></div>`;
+        }
+
+        function bars(data, labels, cls = '') {
+            const max = Math.max(1, ...data);
+            return `<div class="k-bars ${cls}">${data.map(v => `<div class="bar" title="${v}"><em>${v || ''}</em><span class="${v ? '' : 'zero'}" style="height:${Math.max(2, Math.round(v * 100 / max))}%"></span></div>`).join('')}</div>
+                <div class="k-bars-x">${labels.map(l => `<span>${l}</span>`).join('')}</div>`;
+        }
+
+        function renderReading() {
+            const s = summary || {};
+            const reading = allBooks.filter(b => b.reading_status === 'Okunuyor').sort((a, b) => (b.last_read || '').localeCompare(a.last_read || ''));
+            const paused = allBooks.filter(b => b.reading_status === 'Yarım Bırakıldı');
+            const todo = allBooks.filter(b => b.reading_status === 'Okunacak');
+            const done = allBooks.filter(b => b.reading_status === 'Okundu').sort((a, b) => (b.reading_end || '').localeCompare(a.reading_end || '')).slice(0, 8);
+
+            // panel: şu an okunanlar
+            $('dash-reading').innerHTML = reading.length ? `<section class="k-card"><div class="k-card-h"><h3><i class="fas fa-book-open-reader mr-2 text-blue-600"></i>Şu An Okuduklarım</h3><button class="k-btn ghost" onclick="switchTab('reading')">Okuma Takibine Git <i class="fas fa-arrow-right"></i></button></div>${reading.slice(0, 3).map(b => readingCard(b, true)).join('')}</section>` : '';
+            if (currentTab !== 'reading') return;
+
+            const goal = +s.goal || 0, fin = +s.finished_year || 0;
+            const goalPct = goal ? Math.min(100, Math.round(fin * 100 / goal)) : 0;
+            const stat = (ic, color, lbl, val, sub) => `<div class="k-card k-stat"><div class="lbl"><span class="ico" style="background:${color}1a;color:${color}"><i class="fas ${ic}"></i></span>${lbl}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;
+            $('rt-stats').innerHTML =
+                stat('fa-book-open-reader', '#2563eb', 'Şu An Okunan', s.reading_now ?? 0, `${s.to_read ?? 0} kitap okuma listesinde`) +
+                `<div class="k-card k-stat"><div class="lbl"><span class="ico" style="background:#16a34a1a;color:#16a34a"><i class="fas fa-bullseye"></i></span>${esc(s.year || '')} Okuma Hedefi</div>
+                    <div class="val">${fin}${goal ? `<span class="text-lg text-slate-400"> / ${goal}</span>` : ''}</div>
+                    ${goal ? `<div class="k-progress is-done mt-2"><span style="width:${goalPct}%"></span></div><div class="sub">%${goalPct} tamamlandı${fin < goal ? ` · ${goal - fin} kitap kaldı` : ' · Tebrikler! 🎉'}</div>` : `<div class="sub">bu yıl bitirilen kitap · <a href="#" onclick="setGoal();return false" class="text-blue-600 font-semibold">Hedef belirle</a></div>`}
+                </div>` +
+                stat('fa-file-lines', '#7c3aed', 'Bu Yıl Okunan Sayfa', (s.pages_year ?? 0).toLocaleString('tr-TR'), `Toplam ${(s.pages_total ?? 0).toLocaleString('tr-TR')} sayfa okundu`) +
+                stat('fa-fire', '#ea580c', 'Okuma Serisi', `${s.streak ?? 0} <span class="text-lg text-slate-400">gün</span>`, `${s.notes_total ?? 0} okuma notu · ${s.finished_total ?? 0} kitap bitti`);
+
+            $('rt-reading-count').innerText = reading.length ? `${reading.length} kitap` : '';
+            $('rt-reading').innerHTML = reading.map(b => readingCard(b)).join('') ||
+                `<div class="k-empty"><i class="fas fa-book-open"></i>Şu an okuduğunuz bir kitap yok.<br>Okuma listenizden bir kitaba başlayın veya katalogda bir eserin durumunu <b>Okunuyor</b> yapın.</div>`;
+            $('rt-paused-card').classList.toggle('hidden', !paused.length);
+            $('rt-paused').innerHTML = paused.map(b => readingCard(b, true)).join('');
+
+            const days = s.days || [];
+            $('rt-days').innerHTML = days.length ? bars(days.map(d => d.pages), days.map(d => d.date.slice(8, 10))) +
+                `<p class="k-chip mt-2">Son 14 günde toplam <b class="text-slate-700">${days.reduce((a, d) => a + d.pages, 0)}</b> sayfa</p>` : '';
+            const mn = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+            $('rt-year-title').innerText = `${s.year || ''} Yılında Bitirilenler`;
+            $('rt-months').innerHTML = bars(s.months || new Array(12).fill(0), mn, 'green');
+
+            const mini = (b, right) => `<div class="k-list-row"><img src="${cover(b)}"><div class="flex-1 min-w-0 cursor-pointer" onclick="openReading(${b.id})"><p class="t truncate">${esc(b.title)}</p><p class="a truncate">${esc(b.author)}</p></div>${right}</div>`;
+            $('rt-todo').innerHTML = todo.map(b => mini(b, `<button class="k-btn ghost" onclick="setStatus(${b.id},'Okunuyor')"><i class="fas fa-play"></i>Başla</button>`)).join('') ||
+                '<div class="k-empty">Okuma listeniz boş.<br>Katalogda bir eserin durumunu <b>Okunacak</b> yaparak listeye ekleyin.</div>';
+            $('rt-done').innerHTML = done.map(b => mini(b, `<div class="text-right"><div>${starsHtml(b.rating)}</div><div class="k-chip">${fmtDate(b.reading_end)}</div></div>`)).join('') ||
+                '<div class="k-empty">Henüz bitirilen kitap yok.</div>';
+            renderAllNotes();
+        }
+
+        function noteHtml(n, opts = {}) {
+            const page = +n.page ? `<span><i class="fas fa-file-lines"></i> s. ${n.page}</span>` : '';
+            const book = opts.book ? `<span class="truncate" style="max-width:240px"><i class="fas fa-book"></i> <b>${esc(n.book_title)}</b></span>` : '';
+            const act = opts.editable ? `<button class="k-icon-btn" onclick="event.stopPropagation();${opts.edit}(${n.id})" title="Düzenle"><i class="fas fa-pen"></i></button><button class="k-icon-btn del" onclick="event.stopPropagation();${opts.del}(${n.id})" title="Sil"><i class="fas fa-trash"></i></button>` : '';
+            const icon = {'Not': 'fa-note-sticky', 'Alıntı': 'fa-quote-left', 'Soru': 'fa-circle-question', 'Önemli': 'fa-star'}[n.kind] || 'fa-note-sticky';
+            return `<div class="k-note kind-${esc(n.kind || 'Not')} ${opts.click ? 'clickable' : ''}" ${opts.click ? `onclick="${opts.click}(${n.id})"` : ''}>
+                <div class="head"><span class="kind"><i class="fas ${icon}"></i> ${esc(n.kind || 'Not')}</span>${book}${page}<span class="sp"></span><span>${fmtDate((n.created_at || '').slice(0, 10))}</span>${act}</div>
+                <div class="body">${esc(n.note)}</div></div>`;
+        }
+
+        function renderAllNotes() {
+            const q = fold($('rt-note-q').value.trim()), kind = $('rt-note-kind').value;
+            const list = allNotes.filter(n => (!kind || n.kind === kind) && (!q || fold(`${n.note} ${n.book_title} ${n.book_author}`).includes(q)));
+            $('rt-notes').innerHTML = list.slice(0, 200).map(n => noteHtml(n, {book: 1, click: 'openNoteBook'})).join('') ||
+                `<div class="k-empty"><i class="fas fa-note-sticky"></i>${allNotes.length ? 'Aramaya uyan not yok.' : 'Henüz okuma notu eklenmedi. Bir kitabın okuma takibinden veya e-kitap okuyucudan not ekleyebilirsiniz.'}</div>`;
+        }
+        function openNoteBook(noteId) { const n = allNotes.find(x => x.id === noteId); if (n) openReading(n.book_id); }
+
+        async function setGoal() { switchTab('settings'); setTimeout(() => $('setting-goal').focus(), 50); }
+
+        async function postProgress(id, body, msg) {
+            const r = await api(`/api/books/${id}/progress`, {json: body});
+            if (!r.success) { uiAlert(r.message); return null; }
+            const i = allBooks.findIndex(b => b.id === id);
+            if (i >= 0 && r.book) allBooks[i] = r.book;
+            if (msg) toast(msg);
+            return r.book;
+        }
+        async function quickPage(el, id, add) {
+            const inp = el.closest('.k-reading').querySelector('input.num'), b = allBooks.find(x => x.id === id);
+            let page = parseInt(inp.value) || 0;
+            if (add) page = (parseInt(b.current_page) || 0) + add;
+            const book = await postProgress(id, {page}, 'İlerleme kaydedildi.');
+            if (book) { const p = progressOf(book); if (p.total && p.page >= p.total && book.reading_status !== 'Okundu' && await uiConfirm(`"${book.title}" kitabının son sayfasına geldiniz. Okundu olarak işaretlensin mi?`, 'Evet, bitirdim', false)) await postProgress(id, {status: 'Okundu'}, 'Tebrikler, kitap bitirildi! 🎉'); refreshAllData(); }
+        }
+        async function setStatus(id, status) {
+            const b = allBooks.find(x => x.id === id);
+            if (status === 'Okundu' && !await uiConfirm(`"${b ? b.title : ''}" okundu olarak işaretlensin mi?`, 'Evet, bitirdim', false)) return;
+            await postProgress(id, {status}, status === 'Okundu' ? 'Tebrikler, kitap bitirildi! 🎉' : status === 'Okunuyor' ? 'İyi okumalar!' : 'Okuma durumu güncellendi.');
+            refreshAllData();
+        }
+
+        // ---- Kitap bazında okuma penceresi ----
+        const rm = {id: 0, rating: 0, notes: [], dirty: false};
+        async function openReading(id) {
+            const b = allBooks.find(x => x.id === id);
+            if (!b) return;
+            rm.id = id; rm.rating = +b.rating || 0;
+            $('rm-head').innerHTML = `<img src="${cover(b)}" class="w-12 h-16 object-cover rounded shadow-sm border shrink-0 bg-white"><div class="min-w-0"><h3 class="text-xl font-bold text-navy-900 truncate">${esc(b.title)}</h3><p class="text-sm text-slate-500">${esc(b.author)}${b.publisher ? ' · ' + esc(b.publisher) : ''}</p></div>`;
+            $('rm-status').value = STATUSES.includes(b.reading_status) ? b.reading_status : 'Okunmadı';
+            $('rm-page').value = +b.current_page || '';
+            $('rm-total').value = +b.page_count || '';
+            $('rm-start').value = b.reading_start || '';
+            $('rm-end').value = b.reading_end || '';
+            $('rm-read-btn').innerHTML = b.ebook_file ? `<button class="k-btn purple lg" onclick="closeModal('readingModal');openReader(${id})"><i class="fas fa-book-open-reader"></i>E-Kitabı Oku</button>` : '';
+            $('rm-note-page').value = '';
+            $('rm-note-text').value = '';
+            rmStars(rm.rating);
+            rmPreview();
+            $('readingModal').classList.remove('hidden');
+            loadRmNotes();
+            loadRmLog();
+        }
+        function rmStars(v) { rm.rating = v; $('rm-stars').innerHTML = starsHtml(v, false, 'rmStars'); }
+        function rmStatusChanged() {
+            const st = $('rm-status').value;
+            if ((st === 'Okunuyor' || st === 'Yarım Bırakıldı') && !$('rm-start').value) $('rm-start').value = todayStr();
+            if (st === 'Okundu') { if (!$('rm-end').value) $('rm-end').value = todayStr(); if (+$('rm-total').value) $('rm-page').value = $('rm-total').value; }
+            if (st !== 'Okundu') $('rm-end').value = '';
+            if (st === 'Okunmadı' || st === 'Okunacak') { $('rm-page').value = ''; $('rm-start').value = ''; }
+            rmPreview();
+        }
+        function rmPreview() {
+            const fake = {reading_status: $('rm-status').value, page_count: $('rm-total').value, current_page: $('rm-page').value, reading_start: $('rm-start').value};
+            const pace = paceInfo(fake);
+            let h = progressBar(fake, 'lg') || '<span class="k-chip">İlerleme çubuğu, durum <b>Okunuyor</b> / <b>Okundu</b> olduğunda ve sayfa bilgileri girildiğinde görünür.</span>';
+            if (pace && fake.reading_status === 'Okunuyor') h += `<div class="k-facts"><span><i class="fas fa-hourglass-half"></i><b>${pace.days}</b> gündür okunuyor</span><span><i class="fas fa-gauge"></i>Günlük ort. <b>${pace.pace.toFixed(1)}</b> sayfa</span>${pace.eta ? `<span><i class="fas fa-flag-checkered"></i>Tahmini bitiş <b>${fmtDate(pace.eta)}</b></span>` : ''}</div>`;
+            $('rm-preview').innerHTML = h;
+        }
+        async function rmSave() {
+            const body = {status: $('rm-status').value, page: parseInt($('rm-page').value) || 0, page_count: parseInt($('rm-total').value) || 0,
+                reading_start: $('rm-start').value, reading_end: $('rm-end').value, rating: rm.rating};
+            const book = await postProgress(rm.id, body, 'Okuma durumu kaydedildi.');
+            if (book) { rm.dirty = true; openReading(rm.id); }
+        }
+        async function rmFinish() { $('rm-status').value = 'Okundu'; rmStatusChanged(); await rmSave(); }
+        async function loadRmNotes() {
+            const list = await api(`/api/books/${rm.id}/notes`);
+            rm.notes = Array.isArray(list) ? list : [];
+            $('rm-note-count').innerText = rm.notes.length ? `(${rm.notes.length})` : '';
+            $('rm-notes').innerHTML = rm.notes.map(n => noteHtml(n, {editable: 1, edit: 'rmEditNote', del: 'rmDelNote'})).join('') ||
+                '<div class="k-empty"><i class="fas fa-note-sticky"></i>Bu kitap için henüz not yok.</div>';
+        }
+        async function loadRmLog() {
+            const log = await api(`/api/books/${rm.id}/log`);
+            if (!Array.isArray(log) || !log.length) { $('rm-log').innerHTML = '<div class="k-empty">Henüz kayıt yok. Sayfa ilerlemesini kaydettikçe burada günlük okuma geçmişiniz oluşur.</div>'; return; }
+            let prev = 0;
+            const rows = log.map(l => { const d = l.page - prev; prev = l.page; return `<tr><td>${fmtDate(l.log_date)}</td><td>${l.page}. sayfa</td><td class="${d > 0 ? 'k-plus' : 'text-slate-400'}">${d > 0 ? '+' + d : d}</td></tr>`; }).reverse();
+            $('rm-log').innerHTML = `<div style="max-height:220px;overflow:auto"><table class="k-table"><thead><tr><th>Tarih</th><th>Konum</th><th>Okunan</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+        }
+        async function rmAddNote() {
+            const note = $('rm-note-text').value.trim();
+            if (!note) { $('rm-note-text').focus(); return; }
+            const r = await api(`/api/books/${rm.id}/notes`, {json: {note, kind: $('rm-note-kind').value, page: parseInt($('rm-note-page').value) || 0}});
+            if (!r.success) return uiAlert(r.message);
+            $('rm-note-text').value = ''; $('rm-note-page').value = '';
+            rm.dirty = true; toast('Not eklendi.'); loadRmNotes();
+        }
+        async function rmDelNote(id) {
+            if (!await uiConfirm('Bu not silinsin mi?', 'Sil')) return;
+            await api(`/api/notes/${id}`, {method: 'DELETE'}); rm.dirty = true; loadRmNotes();
+        }
+        function rmEditNote(id) { editNoteInline(rm.notes, id, $('rm-notes'), () => { rm.dirty = true; loadRmNotes(); }); }
+
+        // Notu yerinde düzenleme
+        function editNoteInline(list, id, container, after) {
+            const n = list.find(x => x.id === id);
+            if (!n) return;
+            const el = [...container.querySelectorAll('.k-note')][list.indexOf(n)];
+            if (!el) return;
+            el.innerHTML = `<div class="k-note-form">
+                <select class="k-input" data-k="kind">${['Not', 'Alıntı', 'Soru', 'Önemli'].map(k => `<option ${k === n.kind ? 'selected' : ''}>${k}</option>`).join('')}</select>
+                <input type="number" min="0" class="k-input" data-k="page" value="${+n.page || ''}" placeholder="Sayfa">
+                <textarea class="k-input" data-k="note">${esc(n.note)}</textarea>
+                <div class="row"><button class="k-btn ghost" data-a="cancel">Vazgeç</button><button class="k-btn primary" data-a="save"><i class="fas fa-floppy-disk"></i>Kaydet</button></div></div>`;
+            el.classList.remove('clickable'); el.onclick = null;
+            el.querySelector('[data-a="cancel"]').onclick = e => { e.stopPropagation(); after(); };
+            el.querySelector('[data-a="save"]').onclick = async e => {
+                e.stopPropagation();
+                const g = k => el.querySelector(`[data-k="${k}"]`).value;
+                const r = await api(`/api/notes/${id}`, {method: 'PUT', json: {note: g('note'), kind: g('kind'), page: parseInt(g('page')) || 0}});
+                if (!r.success) return uiAlert(r.message);
+                toast('Not güncellendi.'); after();
+            };
+            el.querySelector('textarea').focus();
+        }
+
+        // ================= E-KİTAP / PDF OKUYUCU =================
+        const rd = {id: 0, book: null, epub: false, ch: [], i: 0, fs: 100, theme: 'light', q: '', hits: [], hitIdx: -1, pdfResults: [], pendingHit: null, panel: '', notes: [], page: 1, total: 0, saveTimer: 0};
+        const THEMES = {light: ['#ffffff', '#1e293b'], sepia: ['#f6efe0', '#3b2f1e'], dark: ['#1f2430', '#d7dce5']};
+        const pdfApi = () => { try { return $('r-frame').contentWindow.kys; } catch (e) { return null; } };
+
+        async function openReader(id) {
+            const b = allBooks.find(x => x.id === id);
+            if (!b) return;
+            Object.assign(rd, {id, book: b, epub: isEpub(b), ch: [], i: 0, fs: +prefs.reader_fs || 100, theme: prefs.reader_theme || 'light',
+                q: '', hits: [], hitIdx: -1, pdfResults: [], pendingHit: null, page: 1, total: 0});
+            $('r-title').innerHTML = '<i class="fas fa-book-open-reader mr-2"></i>' + esc(b.title);
+            $('r-dl').href = `/ebook/${id}/file?dl=1`;
+            $('r-epub').classList.toggle('hidden', !rd.epub);
+            $('r-pdf-nav').classList.toggle('hidden', rd.epub);
+            $('r-pdf-zoom').classList.toggle('hidden', rd.epub);
+            $('r-auto-wrap').classList.toggle('hidden', rd.epub);
+            $('r-auto').checked = prefs.pdf_auto !== '0';
+            $('r-q').value = ''; $('r-cnt').innerText = '';
+            $('r-pane-search').innerHTML = '<div class="k-empty"><i class="fas fa-magnifying-glass"></i>Yukarıdaki kutuya aranacak kelimeyi yazıp Enter\'a basın.<br>Sonuçlar burada sayfa/bölüm bazında listelenir.</div>';
+            $('r-finish').classList.add('hidden');
+            updateBookProgressLabel();
+            $('reader').classList.remove('hidden');
+            $('r-loading').classList.remove('hidden');
+            loadReaderNotes();
+            if (!rd.epub) {
+                const pos = +prefs['pdf_pos_' + id] || (b.reading_status === 'Okunuyor' ? +b.current_page : 0) || 1;
+                $('r-frame').src = `/static/pdf-reader.html?id=${id}&page=${pos}`;
+                return;
+            }
+            const d = await api(`/api/books/${id}/toc`);
+            if (!d.success) { uiAlert(d.message, 'E-kitap açılamadı'); closeReader(); return; }
+            rd.ch = d.chapters;
+            $('r-toc').innerHTML = rd.ch.map(c => `<option>${esc(c.title)}</option>`).join('');
+            const [ci, scroll] = String(prefs['epub_pos_' + id] || '0').split(':');
+            rd.restoreScroll = parseFloat(scroll) || 0;
+            chapter(0, Math.min(+ci || 0, rd.ch.length - 1));
+        }
+
+        function updateBookProgressLabel() {
+            const b = rd.book; if (!b) return;
+            const p = progressOf(b);
+            $('r-book-progress').innerHTML = `${statusBadge(b.reading_status)}${p.pct !== null && b.reading_status !== 'Okunmadı' && b.reading_status !== 'Okunacak' ? ` <span>Kitap: <b>${p.page}/${p.total}</b> (%${p.pct})</span>` : ''}`;
+        }
+
+        // --- PDF olayları (pdf-reader.html bu fonksiyonu çağırır) ---
+        window.kysReaderEvent = ev => {
+            if (ev.type === 'loaded') {
+                $('r-loading').classList.add('hidden');
+                rd.total = ev.total;
+                $('r-pages').innerText = '/ ' + ev.total;
+                if (!(+rd.book.page_count) && ev.total) rd.suggestTotal = ev.total;
+            } else if (ev.type === 'page') {
+                rd.page = ev.page; rd.total = ev.total;
+                $('r-page').value = ev.page;
+                const pct = ev.total ? Math.round(ev.page * 100 / ev.total) : 0;
+                $('r-pos').innerText = `Sayfa ${ev.page} / ${ev.total}`;
+                $('r-bar').style.width = pct + '%';
+                $('r-note-page').placeholder = 'Sayfa (' + ev.page + ')';
+                $('r-finish').classList.toggle('hidden', !(ev.total && ev.page >= ev.total && rd.book.reading_status !== 'Okundu'));
+                clearTimeout(rd.saveTimer);
+                rd.saveTimer = setTimeout(() => savePdfPosition(ev.page), 1500);
+            } else if (ev.type === 'zoom') {
+                $('r-zoom-lbl').innerText = '%' + ev.percent;
+            } else if (ev.type === 'find') {
+                $('r-cnt').innerText = ev.total ? `${ev.current} / ${ev.total}` : (ev.pending ? '...' : (rd.q ? 'Yok' : ''));
+            } else if (ev.type === 'error') {
+                $('r-loading').classList.add('hidden');
+                uiAlert(ev.message, 'PDF açılamadı');
+            } else if (ev.type === 'key') {
+                readerKeys(ev.event);
+            }
+        };
+        async function savePdfPosition(page) {
+            if ($('reader').classList.contains('hidden')) return;
+            savePref('pdf_pos_' + rd.id, page);
+            const b = rd.book;
+            if (!$('r-auto').checked || b.reading_status === 'Okundu') return;
+            if (page <= (+b.current_page || 0) && !rd.suggestTotal) return; // yalnızca ileri gidildiğinde işle
+            const body = {page: Math.max(page, +b.current_page || 0)};
+            if (rd.suggestTotal) { body.page_count = rd.suggestTotal; rd.suggestTotal = 0; }
+            const book = await postProgress(rd.id, body);
+            if (book) { rd.book = book; updateBookProgressLabel(); }
+        }
+        function pdfStep(d) { const a = pdfApi(); if (a) a.setPage(rd.page + d); }
+        function pdfGoto(v) { const a = pdfApi(); if (a) a.setPage(parseInt(v) || 1); }
+        function pdfZoom(d) { const a = pdfApi(); if (a) a.zoom(d); }
+        async function readerFinish() {
+            const book = await postProgress(rd.id, {status: 'Okundu'}, 'Tebrikler, kitap bitirildi! 🎉');
+            if (book) { rd.book = book; updateBookProgressLabel(); $('r-finish').classList.add('hidden'); }
+        }
+
+        // --- EPUB ---
+        function chapter(step, idx, hit) {
+            const i = idx !== undefined ? idx : rd.i + step;
+            if (i < 0 || i >= rd.ch.length) return;
+            rd.pendingHit = hit === undefined ? null : hit;
+            if (i === rd.i && $('r-frame').src.endsWith(rd.ch[i].href) && hit !== undefined) { applyHighlights(); return; }
+            rd.i = i;
+            $('r-toc').selectedIndex = i;
+            $('r-loading').classList.remove('hidden');
+            $('r-frame').src = rd.ch[i].href;
+            saveEpubPos(0);
+            updateEpubPos();
+        }
+        function updateEpubPos() {
+            if (!rd.epub || !rd.ch.length) return;
+            $('r-pos').innerText = `Bölüm ${rd.i + 1} / ${rd.ch.length}`;
+            $('r-bar').style.width = Math.round((rd.i + 1) * 100 / rd.ch.length) + '%';
+        }
+        function saveEpubPos(scroll) { savePref('epub_pos_' + rd.id, `${rd.i}:${(scroll || 0).toFixed(3)}`); }
+
+        function fontSize(step) {
+            rd.fs = Math.min(220, Math.max(60, rd.fs + step));
+            savePref('reader_fs', rd.fs);
+            styleFrame();
+        }
+        function cycleTheme() {
+            const order = ['light', 'sepia', 'dark'];
+            rd.theme = order[(order.indexOf(rd.theme) + 1) % order.length];
+            savePref('reader_theme', rd.theme);
+            styleFrame();
+        }
+
+        function frameDoc() { try { return $('r-frame').contentDocument; } catch (e) { return null; } }
+        function styleFrame() {
+            const d = frameDoc();
+            if (!d || !d.documentElement) return;
+            let s = d.getElementById('kys-style');
+            if (!s) {
+                s = d.createElementNS('http://www.w3.org/1999/xhtml', 'style');
+                s.id = 'kys-style';
+                (d.head || d.documentElement).appendChild(s);
+                d.addEventListener('keydown', readerKeys);
+                let t = 0;
+                (d.defaultView || window).addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(() => { const se = d.scrollingElement || d.documentElement; const max = se.scrollHeight - se.clientHeight; saveEpubPos(max > 0 ? se.scrollTop / max : 0); }, 800); });
+            }
+            const [bg, fg] = THEMES[rd.theme] || THEMES.light;
+            s.textContent = `html{font-size:${rd.fs}% !important;background:${bg} !important;color:${fg} !important}body{max-width:46em;margin:0 auto !important;padding:1.5em !important;line-height:1.65;background:transparent !important;color:inherit !important}
+                img,svg{max-width:100%;height:auto}${rd.theme !== 'light' ? `p,span,div,li,h1,h2,h3,h4,h5,h6,td,blockquote{color:inherit !important;background-color:transparent !important}a{color:${rd.theme === 'dark' ? '#93c5fd' : '#7c4a12'} !important}` : ''}
+                mark.kys-hit{background:#fde68a !important;color:#1e293b !important;border-radius:2px;padding:0 1px}mark.kys-cur{background:#f59e0b !important;color:#111 !important;outline:2px solid #b45309}`;
+        }
+
+        function readerKeys(e) {
+            if ($('reader').classList.contains('hidden')) return;
+            const tag = (e.target && e.target.tagName) || '';
+            const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) { e.preventDefault && e.preventDefault(); $('r-q').focus(); $('r-q').select(); return; }
+            if (e.key === 'F3') { e.preventDefault && e.preventDefault(); searchStep(e.shiftKey ? -1 : 1); return; }
+            if (e.key === 'Escape') { if (typing && e.target.id === 'r-q' && rd.q) { clearSearch(); return; } closeReader(); return; }
+            if (typing) return;
+            if (rd.epub) {
+                if (e.key === 'ArrowRight') chapter(1);
+                if (e.key === 'ArrowLeft') chapter(-1);
+            }
+        }
+
+        $('r-frame').addEventListener('load', () => {
+            if (!rd.epub) return;
+            $('r-loading').classList.add('hidden');
+            try { // Bölüm içi bağlantılarla geçişte içindekiler listesini eşitle
+                const p = decodeURIComponent($('r-frame').contentWindow.location.pathname);
+                const i = rd.ch.findIndex(c => decodeURIComponent(c.href) === p);
+                if (i >= 0 && i !== rd.i) { rd.i = i; $('r-toc').selectedIndex = i; saveEpubPos(0); }
+            } catch (e) {}
+            updateEpubPos();
+            styleFrame();
+            if (rd.restoreScroll) {
+                const d = frameDoc(), r = rd.restoreScroll; rd.restoreScroll = 0;
+                setTimeout(() => { const se = d.scrollingElement || d.documentElement; se.scrollTop = r * (se.scrollHeight - se.clientHeight); }, 60);
+            }
+            if (rd.q) applyHighlights();
+        });
+        document.addEventListener('keydown', readerKeys);
+
+        function closeReader() {
+            if (rd.epub && rd.id) { const d = frameDoc(); if (d && d.documentElement) { const se = d.scrollingElement || d.documentElement; const max = se.scrollHeight - se.clientHeight; saveEpubPos(max > 0 ? se.scrollTop / max : 0); } }
+            else if (rd.id && rd.page) { clearTimeout(rd.saveTimer); savePdfPosition(rd.page); }
+            $('reader').classList.add('hidden');
+            $('r-frame').src = 'about:blank';
+            refreshAllData();
+        }
+
+        // --- Kitap içinde arama ---
+        function searchKey(e) {
+            if (e.key === 'Enter') { e.preventDefault(); const q = $('r-q').value.trim(); if (q && q !== rd.q) runSearch(q); else searchStep(e.shiftKey ? -1 : 1); }
+        }
+        function clearSearch() {
+            rd.q = ''; rd.hits = []; rd.hitIdx = -1; $('r-q').value = ''; $('r-cnt').innerText = '';
+            if (rd.epub) clearHighlights(); else { const a = pdfApi(); if (a) a.clearFind(); }
+            $('r-pane-search').innerHTML = '';
+        }
+        const hitMark = h => `${esc(h.pre)}<mark>${esc(h.hit)}</mark>${esc(h.post)}`;
+
+        async function runSearch(q) {
+            if (fold(q).length < 2) { toast('Arama için en az 2 karakter yazın.', 'err'); return; }
+            rd.q = q;
+            $('r-cnt').innerText = '...';
+            showPanel('search');
+            $('r-pane-search').innerHTML = '<div class="k-empty"><i class="fas fa-spinner fa-spin"></i>Aranıyor...</div>';
+            if (!rd.epub) {
+                const a = pdfApi(); if (!a) return;
+                a.find(q);
+                const res = await a.searchAll(q, (list, done, total) => renderPdfResults(list, done, total));
+                if (rd.q === q && res) renderPdfResults(res, -1, 0);
+                return;
+            }
+            const r = await api(`/api/books/${rd.id}/search?q=${encodeURIComponent(q)}`);
+            if (rd.q !== q) return;
+            if (!r.success) { $('r-pane-search').innerHTML = `<div class="k-empty">${esc(r.message)}</div>`; $('r-cnt').innerText = ''; return; }
+            rd.hits = [];
+            r.results.forEach(res => { for (let n = 0; n < res.count; n++) rd.hits.push({ch: res.chapter, n}); });
+            let flat = 0;
+            $('r-pane-search').innerHTML = `<p class="rd-info"><b>${r.total}</b> sonuç, <b>${r.results.length}</b> bölümde bulundu.</p>` +
+                (r.results.map(res => {
+                    const start = flat; flat += res.count;
+                    return `<div class="rd-hit-group"><h5><span>${esc(res.title)}</span><span>${res.count}</span></h5>${res.snippets.map(sn => `<button class="rd-hit" data-hit="${start + sn.n}" onclick="gotoHit(${start + sn.n})">${hitMark(sn)}</button>`).join('')}${res.count > res.snippets.length ? `<button class="rd-hit text-slate-500" onclick="gotoHit(${start + res.snippets.length})">… bu bölümde ${res.count - res.snippets.length} sonuç daha</button>` : ''}</div>`;
+                }).join('') || '<div class="k-empty"><i class="fas fa-magnifying-glass"></i>Sonuç bulunamadı.</div>');
+            if (!rd.hits.length) { $('r-cnt').innerText = 'Yok'; clearHighlights(); return; }
+            const first = rd.hits.findIndex(h => h.ch >= rd.i);
+            gotoHit(first >= 0 ? first : 0);
+        }
+
+        function renderPdfResults(list, done, total) {
+            rd.pdfResults = list;
+            const count = list.reduce((a, r) => a + r.count, 0);
+            const head = done >= 0 && done < total ? `<p class="rd-info"><i class="fas fa-spinner fa-spin"></i> Taranıyor: ${done} / ${total} sayfa · ${count} sonuç</p>` : `<p class="rd-info"><b>${count}</b> sonuç, <b>${list.length}</b> sayfada bulundu.</p>`;
+            $('r-pane-search').innerHTML = head + (list.map(r => `<div class="rd-hit-group"><h5><span>Sayfa ${r.page}</span><span>${r.count}</span></h5>${r.snippets.map(sn => `<button class="rd-hit" onclick="pdfApi().gotoMatch(${r.page})">${hitMark(sn)}</button>`).join('')}</div>`).join('') ||
+                (done >= 0 && done < total ? '' : '<div class="k-empty"><i class="fas fa-magnifying-glass"></i>Sonuç bulunamadı. (Taranmış/resim PDF\'lerde metin araması yapılamaz.)</div>'));
+        }
+
+        function searchStep(d) {
+            const q = $('r-q').value.trim();
+            if (!q) { $('r-q').focus(); return; }
+            if (q !== rd.q) { runSearch(q); return; }
+            if (!rd.epub) { const a = pdfApi(); if (a) a.findAgain(d < 0); return; }
+            if (!rd.hits.length) return;
+            gotoHit((rd.hitIdx + d + rd.hits.length) % rd.hits.length);
+        }
+
+        function gotoHit(k) {
+            const h = rd.hits[k];
+            if (!h) return;
+            rd.hitIdx = k;
+            $('r-cnt').innerText = `${k + 1} / ${rd.hits.length}`;
+            document.querySelectorAll('#r-pane-search .rd-hit.cur').forEach(x => x.classList.remove('cur'));
+            const btn = document.querySelector(`#r-pane-search .rd-hit[data-hit="${k}"]`);
+            if (btn) { btn.classList.add('cur'); btn.scrollIntoView({block: 'nearest'}); }
+            if (h.ch !== rd.i) chapter(0, h.ch, h.n); else { rd.pendingHit = h.n; applyHighlights(); }
+        }
+
+        function clearHighlights() {
+            const d = frameDoc();
+            if (!d) return;
+            d.querySelectorAll('mark.kys-hit').forEach(m => { const t = d.createTextNode(m.textContent); m.replaceWith(t); });
+            if (d.body) d.body.normalize();
+        }
+        function applyHighlights() {
+            const d = frameDoc();
+            if (!d || !d.body || !rd.q) return;
+            clearHighlights();
+            const q = fold(rd.q);
+            const walker = d.createTreeWalker(d.body, NodeFilter.SHOW_TEXT, {acceptNode: n => /^(script|style)$/i.test(n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT});
+            const nodes = [];
+            while (walker.nextNode()) nodes.push(walker.currentNode);
+            const marks = [];
+            nodes.forEach(node => {
+                const f = fold(node.data);
+                let idx = f.indexOf(q), cur = node, offset = 0;
+                while (idx >= 0) {
+                    const start = idx - offset;
+                    const mid = cur.splitText(start);
+                    const after = mid.splitText(q.length);
+                    const m = d.createElementNS('http://www.w3.org/1999/xhtml', 'mark');
+                    m.className = 'kys-hit';
+                    mid.parentNode.replaceChild(m, mid);
+                    m.appendChild(mid);
+                    marks.push(m);
+                    cur = after; offset = idx + q.length;
+                    idx = f.indexOf(q, offset);
+                }
+            });
+            if (rd.pendingHit !== null && marks.length) {
+                const m = marks[Math.min(rd.pendingHit, marks.length - 1)];
+                m.classList.add('kys-cur');
+                m.scrollIntoView({block: 'center'});
+            }
+            rd.pendingHit = null;
+        }
+
+        // --- Panel (arama sonuçları / notlar) ---
+        function showPanel(tab) { rd.panel = tab; $('r-panel').classList.remove('hidden'); showPanelTab(tab); }
+        function togglePanel(tab) {
+            if (!tab || (rd.panel === tab && !$('r-panel').classList.contains('hidden'))) { $('r-panel').classList.add('hidden'); rd.panel = ''; }
+            else showPanel(tab);
+            $('r-btn-search').classList.toggle('on', rd.panel === 'search');
+            $('r-btn-notes').classList.toggle('on', rd.panel === 'notes');
+        }
+        function showPanelTab(tab) {
+            rd.panel = tab;
+            $('r-tab-search').classList.toggle('on', tab === 'search');
+            $('r-tab-notes').classList.toggle('on', tab === 'notes');
+            $('r-pane-search').classList.toggle('hidden', tab !== 'search');
+            $('r-pane-notes').classList.toggle('hidden', tab !== 'notes');
+            $('r-btn-search').classList.toggle('on', tab === 'search');
+            $('r-btn-notes').classList.toggle('on', tab === 'notes');
+        }
+
+        async function loadReaderNotes() {
+            const list = await api(`/api/books/${rd.id}/notes`);
+            rd.notes = Array.isArray(list) ? list : [];
+            $('r-note-n').innerText = rd.notes.length ? ' ' + rd.notes.length : '';
+            $('r-notes').innerHTML = rd.notes.map(n => noteHtml(n, {editable: 1, edit: 'readerEditNote', del: 'readerDelNote', click: 'readerGotoNote'})).join('') ||
+                '<div class="k-empty"><i class="fas fa-note-sticky"></i>Bu kitap için henüz not yok.</div>';
+        }
+        function selectionText() {
+            if (!rd.epub) { const a = pdfApi(); return a ? a.selectionText() : ''; }
+            const d = frameDoc(); try { return d ? String(d.getSelection()) : ''; } catch (e) { return ''; }
+        }
+        function grabSelection() {
+            const t = selectionText().replace(/\s+/g, ' ').trim();
+            if (!t) { toast('Önce kitapta alıntılamak istediğiniz metni fareyle seçin.', 'err'); return; }
+            $('r-note-text').value = t;
+            $('r-note-kind').value = 'Alıntı';
+            if (!rd.epub && !$('r-note-page').value) $('r-note-page').value = rd.page;
+            $('r-note-text').focus();
+        }
+        async function readerAddNote() {
+            const note = $('r-note-text').value.trim();
+            if (!note) { $('r-note-text').focus(); return; }
+            let page = parseInt($('r-note-page').value) || 0;
+            if (!page && !rd.epub) page = rd.page;
+            const location = rd.epub ? `epub:${rd.i}` : `pdf:${page || rd.page}`;
+            const r = await api(`/api/books/${rd.id}/notes`, {json: {note, kind: $('r-note-kind').value, page, location}});
+            if (!r.success) return uiAlert(r.message);
+            $('r-note-text').value = ''; $('r-note-page').value = ''; $('r-note-kind').value = 'Not';
+            toast('Not eklendi.');
+            loadReaderNotes();
+        }
+        function readerGotoNote(id) {
+            const n = rd.notes.find(x => x.id === id);
+            if (!n) return;
+            const loc = String(n.location || '');
+            if (rd.epub && loc.startsWith('epub:')) chapter(0, +loc.slice(5));
+            else if (!rd.epub) { const p = loc.startsWith('pdf:') ? +loc.slice(4) : +n.page; const a = pdfApi(); if (a && p) a.setPage(p); }
+        }
+        async function readerDelNote(id) {
+            if (!await uiConfirm('Bu not silinsin mi?', 'Sil')) return;
+            await api(`/api/notes/${id}`, {method: 'DELETE'}); loadReaderNotes();
+        }
+        function readerEditNote(id) { editNoteInline(rd.notes, id, $('r-notes'), loadReaderNotes); }
+
+        // ---- Üyeler & Ödünç ----
+        async function fetchMembers() {
+            const members = await api('/api/members');
+            if (!Array.isArray(members)) return;
+            $('table-members').innerHTML = members.map(m => `<tr class="border-b hover:bg-slate-50"><td class="p-3">#${m.id}</td><td class="p-3 font-semibold">${esc(m.name)}</td><td class="p-3">${esc(m.phone)}<br><span class="text-xs text-slate-400">${esc(m.email)}</span></td><td class="p-3">${esc(fmtDate(m.join_date))}</td><td class="p-3 text-center"><button onclick="deleteMember(${m.id})" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded"><i class="fas fa-trash"></i></button></td></tr>`).join('')
+                || '<tr><td colspan="5" class="k-empty">Henüz üye kaydı yok.</td></tr>';
+            $('l-member').innerHTML = '<option value="">-- Üye Seçin --</option>' + members.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
+        }
+
+        async function fetchLoans() {
+            const loans = await api('/api/loans');
+            if (!Array.isArray(loans)) return;
+            const today = todayStr();
+            $('table-loans').innerHTML = loans.map(l => {
+                const late = l.status === 'Aktif' && l.due_date < today;
+                const badge = l.status === 'Aktif' ? (late ? '<span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold">Gecikti</span>' : '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold">Aktif</span>') : '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">İade Edildi</span>';
+                const act = l.status === 'Aktif' ? `<button onclick="returnLoan(${l.id})" class="text-xs bg-navy-800 text-white px-3 py-1 rounded hover:bg-navy-900 shadow">İade Al</button>` : `<span class="text-xs text-slate-400">${esc(fmtDate(l.return_date))}</span>`;
+                return `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-semibold">${esc(l.member_name)}</td><td class="p-3">${esc(l.book_title)}</td><td class="p-3 text-xs">${esc(fmtDate(l.loan_date))}</td><td class="p-3 text-xs font-semibold ${late ? 'text-red-600' : ''}">${esc(fmtDate(l.due_date))}</td><td class="p-3">${badge}</td><td class="p-3 text-center">${act}</td></tr>`;
+            }).join('') || '<tr><td colspan="6" class="k-empty">Ödünç kaydı yok.</td></tr>';
+        }
+
+        async function addMember(e) {
+            e.preventDefault();
+            const data = {name: $('m-name').value, phone: $('m-phone').value, email: $('m-email').value};
+            const r = await api('/api/members', {json: data});
+            if (!r.success) uiAlert(r.message); else { $('form-member').reset(); toast('Üye kaydedildi.'); }
+            refreshAllData();
+        }
+
+        async function deleteMember(id) {
+            if (!await uiConfirm('Silmek istediğinize emin misiniz?', 'Sil')) return;
+            const data = await api(`/api/members/${id}`, {method: 'DELETE'});
+            if (!data.success) uiAlert(data.message);
+            refreshAllData();
+        }
+
+        async function addLoan(e) {
+            e.preventDefault();
+            const data = {member_id: $('l-member').value, book_id: $('l-book').value, days: $('l-days').value};
+            const r = await api('/api/loans', {json: data});
+            if (!r.success) uiAlert(r.message); else { $('form-loan').reset(); toast('Ödünç verildi.'); }
+            refreshAllData();
+        }
+
+        async function returnLoan(id) {
+            if (!await uiConfirm('Kitap iade alındı olarak işaretlenecek. Onaylıyor musunuz?', 'İade Al', false)) return;
+            await api(`/api/loans/${id}/return`, {method: 'PUT'});
+            toast('İade alındı.');
+            refreshAllData();
+        }
+
+        // Esc ile açık pencereleri kapat
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape' || !$('reader').classList.contains('hidden') || document.querySelector('.k-dialog-wrap')) return;
+            for (const id of ['readingModal', 'detailModal', 'bookModal']) if (!$(id).classList.contains('hidden')) { closeModal(id); break; }
+        });
+
+        buildForm();
+        refreshAllData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Okuyucu</title>
+    <link rel="stylesheet" href="/static/pdfjs/pdf_viewer.css">
+    <style>
+        html, body { margin: 0; height: 100%; background: #525659; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        #viewerContainer { position: absolute; inset: 0; overflow: auto; }
+        .pdfViewer .page { margin: 14px auto; border: 0; box-shadow: 0 3px 14px rgba(0, 0, 0, .35); }
+        .pdfViewer .page .textLayer .highlight { background-color: rgba(250, 204, 21, .42); }
+        .pdfViewer .page .textLayer .highlight.selected { background-color: rgba(249, 115, 22, .55); outline: 2px solid rgba(194, 65, 12, .7); }
+        #msg { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: #f1f5f9; padding: 2rem; text-align: center; font-size: 15px; }
+    </style>
+</head>
+<body>
+<div id="viewerContainer"><div id="viewer" class="pdfViewer"></div></div>
+<div id="msg"></div>
+<script type="module">
+    import * as pdfjsLib from '/static/pdfjs/pdf.min.mjs';
+    globalThis.pdfjsLib = pdfjsLib;
+    const V = await import('/static/pdfjs/pdf_viewer.mjs');
+
+    const emit = ev => { try { parent.kysReaderEvent && parent.kysReaderEvent(ev); } catch (e) {} };
+    const fold = s => (parent.kysFold ? parent.kysFold(s) : s.toLocaleLowerCase('tr'));
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const startPage = Math.max(1, parseInt(params.get('page')) || 1);
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/pdfjs/pdf.worker.min.mjs';
+    const container = document.getElementById('viewerContainer');
+    const eventBus = new V.EventBus();
+    const linkService = new V.PDFLinkService({eventBus});
+    linkService.externalLinkEnabled = false; // PDF içindeki dış bağlantılar uygulama penceresini terk etmesin
+    const findController = new V.PDFFindController({eventBus, linkService});
+    const viewer = new V.PDFViewer({container, eventBus, linkService, findController});
+    linkService.setViewer(viewer);
+
+    let pdf = null, lastQ = '';
+    const showMsg = t => { const m = document.getElementById('msg'); m.textContent = t; m.style.display = 'flex'; };
+    try {
+        pdf = await pdfjsLib.getDocument({
+            url: `/ebook/${id}/file`,
+            cMapUrl: '/static/pdfjs/cmaps/', cMapPacked: true,
+            standardFontDataUrl: '/static/pdfjs/standard_fonts/',
+            wasmUrl: '/static/pdfjs/wasm/', iccUrl: '/static/pdfjs/iccs/',
+            disableRange: true, isEvalSupported: false
+        }).promise;
+    } catch (e) {
+        const msg = 'PDF dosyası açılamadı: ' + (e && e.message ? e.message : e);
+        showMsg(msg);
+        emit({type: 'error', message: msg});
+        throw e;
+    }
+    viewer.setDocument(pdf);
+    linkService.setDocument(pdf, null);
+
+    const emitPage = n => emit({type: 'page', page: n || viewer.currentPageNumber, total: pdf.numPages});
+    eventBus.on('pagesinit', () => {
+        viewer.currentScaleValue = 'auto';
+        if (startPage > 1) viewer.currentPageNumber = Math.min(startPage, pdf.numPages);
+        emit({type: 'loaded', total: pdf.numPages});
+        emitPage();
+    });
+    eventBus.on('pagechanging', e => emitPage(e.pageNumber));
+    eventBus.on('scalechanging', e => emit({type: 'zoom', percent: Math.round(e.scale * 100)}));
+    eventBus.on('updatefindmatchescount', ({matchesCount}) => emit({type: 'find', current: matchesCount.current, total: matchesCount.total}));
+    eventBus.on('updatefindcontrolstate', ({state, matchesCount}) => emit({type: 'find', current: matchesCount ? matchesCount.current : 0, total: matchesCount ? matchesCount.total : 0, pending: state === V.FindState.PENDING}));
+
+    const dispatchFind = (type, query, prev = false) => eventBus.dispatch('find', {
+        source: null, type, query, caseSensitive: false, entireWord: false, highlightAll: true, findPrevious: prev, matchDiacritics: false
+    });
+
+    // ---- Tüm sayfalarda arama (sonuç listesi için) ----
+    const pageTexts = [];
+    let token = 0;
+    async function pageText(i) {
+        if (pageTexts[i] !== undefined) return pageTexts[i];
+        const page = await pdf.getPage(i);
+        const tc = await page.getTextContent();
+        let s = '';
+        for (const it of tc.items) if ('str' in it) { s += it.str; if (it.hasEOL) s += ' '; }
+        return (pageTexts[i] = s.replace(/\s+/g, ' '));
+    }
+    const snip = (t, p, len) => {
+        const a = Math.max(0, p - 60), b = Math.min(t.length, p + len + 60);
+        return {pre: (a > 0 ? '…' : '') + t.slice(a, p), hit: t.slice(p, p + len), post: t.slice(p + len, b) + (b < t.length ? '…' : '')};
+    };
+
+    window.kys = {
+        get numPages() { return pdf.numPages; },
+        setPage(n) { viewer.currentPageNumber = Math.min(pdf.numPages, Math.max(1, n | 0)); },
+        zoom(d) {
+            if (!d) { // sığdırma modları arasında geçiş: otomatik → sayfa genişliği → tam sayfa
+                const modes = ['auto', 'page-width', 'page-fit'];
+                viewer.currentScaleValue = modes[(modes.indexOf(viewer.currentScaleValue) + 1) % modes.length];
+                return;
+            }
+            viewer.currentScale = Math.min(5, Math.max(0.25, viewer.currentScale * (d > 0 ? 1.15 : 1 / 1.15)));
+        },
+        find(q) { lastQ = q; dispatchFind('', q); },
+        findAgain(prev) { if (lastQ) dispatchFind('again', lastQ, prev); },
+        clearFind() { lastQ = ''; token++; eventBus.dispatch('findbarclose', {source: null}); },
+        gotoMatch(page) { viewer.currentPageNumber = page; if (lastQ) dispatchFind('', lastQ); },
+        selectionText() { return String(window.getSelection() || ''); },
+        async searchAll(q, onProgress) {
+            const my = ++token, fq = fold(q), results = [];
+            for (let i = 1; i <= pdf.numPages; i++) {
+                if (my !== token) return null;
+                let text = '';
+                try { text = await pageText(i); } catch (e) {}
+                const f = fold(text);
+                let idx = f.indexOf(fq), count = 0;
+                const snippets = [];
+                while (idx >= 0) {
+                    count++;
+                    if (snippets.length < 4) snippets.push(snip(text, idx, fq.length));
+                    idx = f.indexOf(fq, idx + fq.length);
+                }
+                if (count) results.push({page: i, count, snippets});
+                if (i % 8 === 0 && onProgress) { onProgress(results.slice(), i, pdf.numPages); await new Promise(r => setTimeout(r, 0)); }
+            }
+            return my === token ? results : null;
+        }
+    };
+
+    // Kısayollar üst pencereye iletilir
+    document.addEventListener('keydown', e => {
+        const ctrlF = (e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F');
+        if (ctrlF || e.key === 'F3' || e.key === 'Escape') {
+            e.preventDefault();
+            emit({type: 'key', event: {key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey}});
+        }
+    });
+    // Ctrl + fare tekerleği ile yakınlaştırma
+    container.addEventListener('wheel', e => {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+        window.kys.zoom(e.deltaY < 0 ? 1 : -1);
+    }, {passive: false});
+</script>
+</body>
+</html>
