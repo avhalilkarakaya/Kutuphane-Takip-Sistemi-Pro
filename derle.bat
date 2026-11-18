@@ -16,6 +16,7 @@ echo.
 
 if /i "%~1"=="32" goto x86
 
+call :lisans x86_64-pc-windows-msvc
 cargo build --release
 if errorlevel 1 goto fail
 set "SRC=target\release\Kutuphane_Takip_Sistemi_Pro.exe"
@@ -24,6 +25,7 @@ goto copy
 
 :x86
 rustup target add i686-pc-windows-msvc
+call :lisans i686-pc-windows-msvc
 cargo build --release --target i686-pc-windows-msvc
 if errorlevel 1 goto fail
 set "SRC=target\i686-pc-windows-msvc\release\Kutuphane_Takip_Sistemi_Pro.exe"
@@ -38,6 +40,13 @@ echo Bu exe dosyasini eski uygulamanin bulundugu klasore koyarsaniz
 echo mevcut verileriniz aynen kullanilir.
 echo.
 pause
+exit /b 0
+
+:lisans
+rem Uygulamaya derlenen Rust kutuphanelerinin lisans dosyalarini toplar (exe'ye gomulur)
+echo Lisans dosyalari toplaniyor...
+powershell -NoProfile -ExecutionPolicy Bypass -File lisanslar.ps1 static\lisanslar\rust %1
+if errorlevel 1 echo [uyari] Rust kutuphane lisanslari toplanamadi, derlemeye devam ediliyor.
 exit /b 0
 
 :norust

@@ -4,6 +4,8 @@ version = "2.0.0"
 edition = "2021"
 authors = ["Halil Karakaya"]
 description = "Kütüphane Takip Sistemi Pro"
+license = "AGPL-3.0-only"
+repository = "https://github.com/avhalilkarakaya/Kutuphane-Takip-Sistemi-Pro"
 build = "build.rs"
 publish = false
 

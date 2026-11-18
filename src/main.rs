@@ -1,3 +1,12 @@
+// Kütüphane Takip Sistemi Pro
+// Copyright (C) 2026 Halil Karakaya
+//
+// Bu program özgür yazılımdır: Free Software Foundation tarafından yayımlanan GNU Affero
+// Genel Kamu Lisansı'nın 3. sürümü koşulları altında yeniden dağıtabilir ve/veya
+// değiştirebilirsiniz. Bu program yararlı olacağı umuduyla, ancak HİÇBİR GARANTİ
+// OLMAKSIZIN dağıtılmaktadır. Ayrıntılar için LICENSE dosyasına bakınız.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! Kütüphane Takip Sistemi Pro — Rust sürümü.
 //!
 //! Uygulama, yerel (127.0.0.1) bir sunucu başlatır ve arayüzü tarayıcı yerine
@@ -111,8 +120,11 @@ mod gui {
             .with_url(url)
             .with_devtools(cfg!(debug_assertions))
             .with_ipc_handler(move |req: wry::http::Request<String>| {
-                if let Some(t) = req.body().strip_prefix("title:") {
+                let body = req.body();
+                if let Some(t) = body.strip_prefix("title:") {
                     let _ = proxy.send_event(UserEvent::SetTitle(t.to_string()));
+                } else if let Some(u) = body.strip_prefix("open:") {
+                    open_in_browser(u);
                 }
             });
 
@@ -134,6 +146,17 @@ mod gui {
                 _ => {}
             }
         })
+    }
+
+    /// Bağlantıyı (ör. kaynak kodu adresi) kullanıcının varsayılan tarayıcısında açar.
+    fn open_in_browser(url: &str) {
+        if !url.starts_with("https://") || url.contains(['"', ' ', '\n']) {
+            return;
+        }
+        #[cfg(windows)]
+        let _ = std::process::Command::new("rundll32").args(["url.dll,FileProtocolHandler", url]).spawn();
+        #[cfg(not(windows))]
+        let _ = std::process::Command::new("xdg-open").arg(url).spawn();
     }
 
     fn webview_error(e: wry::Error) -> String {

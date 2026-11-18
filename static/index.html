@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Kütüphane Takip Sistemi Pro — Copyright (C) 2026 Halil Karakaya — SPDX-License-Identifier: AGPL-3.0-only -->
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -230,7 +231,15 @@
                 </div>
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 h-fit">
                     <h3 class="text-lg font-bold text-navy-800 mb-4 border-b pb-2"><i class="fas fa-circle-info mr-2 text-slate-500"></i>Uygulama Hakkında</h3>
-                    <p class="text-sm text-slate-600">Kütüphane Takip Sistemi Pro <b id="app-version"></b> — Rust ile yeniden yazılmış masaüstü sürümü. Uygulama tarayıcıya ihtiyaç duymadan kendi penceresinde çalışır, internet bağlantısı gerektirmez.</p>
+                    <p class="text-sm text-slate-600">Kütüphane Takip Sistemi Pro <b id="app-version"></b> — Rust ile yazılmış masaüstü uygulaması. Tarayıcıya ihtiyaç duymadan kendi penceresinde çalışır, internet bağlantısı gerektirmez.</p>
+                    <p class="text-sm text-slate-700 font-semibold mt-3">© 2026 Halil Karakaya. Tüm hakları saklıdır.</p>
+                    <p class="text-sm text-slate-600 mt-2">Bu program özgür yazılımdır: <b>GNU Affero Genel Kamu Lisansı sürüm 3</b> (AGPL-3.0) koşulları çerçevesinde kullanabilir, inceleyebilir, değiştirebilir ve dağıtabilirsiniz. Program yararlı olacağı umuduyla, ancak <b>hiçbir garanti olmaksızın</b> dağıtılmaktadır; ayrıntılar için lisans metnine bakınız.</p>
+                    <p class="text-sm text-slate-600 mt-2 break-all">Kaynak kodu: <a href="#" onclick="openExternal(SOURCE_URL);return false" class="text-blue-600 font-semibold" id="source-url"></a></p>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <button class="k-btn ghost" onclick="openLicenses('lisanslar/AGPL-3.0.txt')"><i class="fas fa-scale-balanced"></i>Lisans metni (AGPL-3.0)</button>
+                        <button class="k-btn ghost" onclick="openLicenses('lisanslar/UCUNCU_TARAF.txt')"><i class="fas fa-puzzle-piece"></i>Üçüncü taraf bileşenler</button>
+                        <button class="k-btn ghost" onclick="openLicenses()"><i class="fas fa-file-contract"></i>Tüm lisanslar</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -394,10 +403,25 @@
         </div>
     </div>
 
+    <!-- LICENSES MODAL -->
+    <div id="licenseModal" class="fixed inset-0 bg-black/50 hidden z-40 flex items-center justify-center p-2 md:p-4" onclick="if(event.target===this)closeModal('licenseModal')">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl flex flex-col" style="height:90vh">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="text-xl font-bold text-navy-900"><i class="fas fa-file-contract mr-2"></i>Lisanslar</h3>
+                <button onclick="closeModal('licenseModal')" class="text-slate-400 hover:text-slate-700 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="k-lic">
+                <nav id="lic-list" class="k-lic-list"></nav>
+                <pre id="lic-text" class="k-lic-text"></pre>
+            </div>
+        </div>
+    </div>
+
     <div id="k-toasts" class="k-toasts"></div>
 
     <script>
         const DEFAULT_LIB = 'Karakaya Kütüphanesi';
+        const SOURCE_URL = 'https://github.com/avhalilkarakaya/Kutuphane-Takip-Sistemi-Pro';
         const STATUSES = ['Okunmadı', 'Okunacak', 'Okunuyor', 'Okundu', 'Yarım Bırakıldı'];
         const STATUS_META = {
             'Okunmadı': ['fa-book', 'st-none'], 'Okunacak': ['fa-list-check', 'st-todo'], 'Okunuyor': ['fa-bookmark', 'st-reading'],
@@ -1337,6 +1361,71 @@
         }
         function readerEditNote(id) { editNoteInline(rd.notes, id, $('r-notes'), loadReaderNotes); }
 
+        // ---- Lisanslar ----
+        function openExternal(url) {
+            // Uygulama penceresinde değil, varsayılan tarayıcıda açılır
+            if (window.ipc) window.ipc.postMessage('open:' + url); else window.open(url, '_blank');
+        }
+        function licenseLabel(p) {
+            const fixed = {
+                'lisanslar/AGPL-3.0.txt': 'Kütüphane Takip Sistemi Pro — GNU AGPL-3.0',
+                'lisanslar/UCUNCU_TARAF.txt': 'Üçüncü taraf bileşenler (özet)',
+                'lisanslar/FontAwesome-LICENSE.txt': 'Font Awesome Free',
+                'lisanslar/TailwindCSS-LICENSE.txt': 'Tailwind CSS',
+                'lisanslar/rust/KUTUPHANELER.txt': 'Rust kütüphaneleri (liste)',
+                'pdfjs/LICENSE.txt': 'pdf.js',
+                'pdfjs/cmaps/LICENSE': 'Adobe CMap dosyaları',
+                'pdfjs/iccs/LICENSE': 'ICC renk profili',
+                'pdfjs/standard_fonts/LICENSE_FOXIT': 'Foxit yazı tipleri',
+                'pdfjs/standard_fonts/LICENSE_LIBERATION': 'Liberation yazı tipleri',
+                'pdfjs/wasm/LICENSE_OPENJPEG': 'OpenJPEG',
+                'pdfjs/wasm/LICENSE_PDFJS_OPENJPEG': 'OpenJPEG (pdf.js derlemesi)',
+                'pdfjs/wasm/LICENSE_JBIG2': 'JBIG2 (PDFium)',
+                'pdfjs/wasm/LICENSE_PDFJS_JBIG2': 'JBIG2 (pdf.js derlemesi)',
+                'pdfjs/wasm/LICENSE_QCMS': 'qcms',
+                'pdfjs/wasm/LICENSE_PDFJS_QCMS': 'qcms (pdf.js derlemesi)'
+            };
+            if (fixed[p]) return fixed[p];
+            const m = p.match(/^lisanslar\/rust\/([^/]+)\/(.+)$/);
+            return m ? `${m[1]} · ${m[2].replace(/\.txt$/, '')}` : p;
+        }
+        function licenseGroup(p) {
+            if (p === 'lisanslar/AGPL-3.0.txt' || p === 'lisanslar/UCUNCU_TARAF.txt') return 'Uygulama';
+            if (p.startsWith('pdfjs/')) return 'pdf.js ve alt bileşenleri';
+            if (p.startsWith('lisanslar/rust/')) return 'Rust kütüphaneleri';
+            return 'Arayüz bileşenleri';
+        }
+        let licFiles = null;
+        async function openLicenses(path) {
+            $('licenseModal').classList.remove('hidden');
+            if (!licFiles) {
+                const list = await api('/api/licenses');
+                licFiles = Array.isArray(list) ? list : [];
+                const order = ['Uygulama', 'Arayüz bileşenleri', 'pdf.js ve alt bileşenleri', 'Rust kütüphaneleri'];
+                const first = p => ['lisanslar/AGPL-3.0.txt', 'lisanslar/UCUNCU_TARAF.txt', 'lisanslar/rust/KUTUPHANELER.txt', 'pdfjs/LICENSE.txt'].includes(p) ? 0 : 1;
+                licFiles.sort((a, b) => order.indexOf(licenseGroup(a)) - order.indexOf(licenseGroup(b)) || first(a) - first(b) || a.localeCompare(b));
+                let h = '', g = '';
+                licFiles.forEach(p => {
+                    if (licenseGroup(p) !== g) { g = licenseGroup(p); h += `<h5>${esc(g)}</h5>`; }
+                    h += `<button data-p="${esc(p)}" onclick="showLicense(this.dataset.p)">${esc(licenseLabel(p))}</button>`;
+                });
+                if (!licFiles.some(p => p.startsWith('lisanslar/rust/'))) h += '<h5>Rust kütüphaneleri</h5><p class="k-chip" style="padding:0 .6rem">Bu derlemede liste yok. Lisanslar derle.bat ile derlemede otomatik toplanır.</p>';
+                $('lic-list').innerHTML = h;
+            }
+            showLicense(path || 'lisanslar/AGPL-3.0.txt');
+        }
+        async function showLicense(p) {
+            document.querySelectorAll('#lic-list button').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+            const cur = document.querySelector('#lic-list button.on');
+            if (cur) cur.scrollIntoView({block: 'nearest'});
+            $('lic-text').textContent = 'Yükleniyor...';
+            try {
+                const r = await fetch('/static/' + p.split('/').map(encodeURIComponent).join('/'));
+                $('lic-text').textContent = r.ok ? (await r.text()).replace(/^\uFEFF/, '') : 'Dosya bulunamadı.';
+            } catch (e) { $('lic-text').textContent = 'Dosya okunamadı.'; }
+            $('lic-text').scrollTop = 0;
+        }
+
         // ---- Üyeler & Ödünç ----
         async function fetchMembers() {
             const members = await api('/api/members');
@@ -1391,9 +1480,10 @@
         // Esc ile açık pencereleri kapat
         document.addEventListener('keydown', e => {
             if (e.key !== 'Escape' || !$('reader').classList.contains('hidden') || document.querySelector('.k-dialog-wrap')) return;
-            for (const id of ['readingModal', 'detailModal', 'bookModal']) if (!$(id).classList.contains('hidden')) { closeModal(id); break; }
+            for (const id of ['licenseModal', 'readingModal', 'detailModal', 'bookModal']) if (!$(id).classList.contains('hidden')) { closeModal(id); break; }
         });
 
+        $('source-url').innerText = SOURCE_URL.replace('https://', '');
         buildForm();
         refreshAllData();
     </script>

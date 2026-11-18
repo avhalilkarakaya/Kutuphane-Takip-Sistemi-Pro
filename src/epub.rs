@@ -1,3 +1,6 @@
+// Kütüphane Takip Sistemi Pro — Copyright (C) 2026 Halil Karakaya
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! EPUB içindekiler tablosu, bölüm listesi ve kitap içi arama.
 
 use std::collections::HashMap;

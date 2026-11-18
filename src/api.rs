@@ -1,3 +1,6 @@
+// Kütüphane Takip Sistemi Pro — Copyright (C) 2026 Halil Karakaya
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! Uygulamanın tüm HTTP uç noktaları (API, e-kitap ve statik dosyalar).
 
 use std::collections::HashMap;
@@ -283,11 +286,26 @@ impl App {
             ("POST", ["api", "loans"]) => self.add_loan(req),
             ("PUT", ["api", "loans", i, "return"]) => self.return_loan(id(i)?),
 
+            ("GET", ["api", "licenses"]) => Ok(Self::licenses()),
             ("GET", ["api", "backup"]) => self.backup(),
             ("GET", ["api", "export.csv"]) => self.export_csv(),
             ("POST", ["api", "merge-db"]) => self.merge_db(req),
             _ => Ok(Response::not_found()),
         }
+    }
+
+    /// Uygulamaya gömülü lisans metinlerinin listesi (Hakkında > Lisanslar).
+    fn licenses() -> Response {
+        let mut files: Vec<String> = crate::assets::list()
+            .into_iter()
+            .filter(|p| {
+                let name = p.rsplit('/').next().unwrap_or(p).to_ascii_uppercase();
+                p.starts_with("lisanslar/")
+                    || ["LICENSE", "LICENCE", "COPYING", "NOTICE", "UNLICENSE"].iter().any(|k| name.starts_with(k))
+            })
+            .collect();
+        files.sort();
+        Response::json(&Json::Arr(files.into_iter().map(Json::Str).collect()))
     }
 
     fn static_file(&self, path: &str) -> Response {

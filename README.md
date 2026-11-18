@@ -85,8 +85,31 @@ src/sqlite.rs               SQLite bağlantısı
 src/epub.rs, zipread.rs     EPUB içindekiler ve kitap içi arama
 src/json.rs, util.rs        Yardımcılar (JSON, Türkçe arama, tarih)
 static/                     Arayüz (index.html, pdf-reader.html, stiller, pdf.js)
+static/lisanslar/           Lisans metinleri ve üçüncü taraf bileşen listesi (exe'ye gömülür)
+lisanslar.ps1               Derlemede Rust kütüphanelerinin lisanslarını toplar
 assets/                     Uygulama simgesi
 ```
 
+## Lisans
+
 © 2026 Halil Karakaya. Tüm hakları saklıdır.
-Üçüncü taraf bileşenler: pdf.js (Apache 2.0), Font Awesome Free (OFL/MIT), SQLite (kamu malı), wry/tao (Apache 2.0/MIT).
+
+Kütüphane Takip Sistemi Pro, [GNU Affero Genel Kamu Lisansı sürüm 3](LICENSE) (AGPL-3.0) ile
+lisanslanmıştır ve hiçbir garanti olmaksızın dağıtılır. Kullanılan bileşenler ve lisansları:
+[static/lisanslar/UCUNCU_TARAF.txt](static/lisanslar/UCUNCU_TARAF.txt).
+
+Lisans metinleri uygulamanın içinde de yer alır: **Veri Aktarımı & Ayarlar > Uygulama Hakkında > Lisanslar**.
+Derleme sırasında (`derle.bat` ve GitHub Actions) `lisanslar.ps1` betiği, exe'ye derlenen tüm Rust
+kütüphanelerinin lisans dosyalarını toplayıp uygulamaya ekler.
+
+---
+
+## English summary
+
+Kütüphane Takip Sistemi Pro is an offline Windows desktop application (Rust, WebView2) for managing
+personal and institutional libraries: cataloguing, members and loans, a built-in PDF/EPUB reader
+with full-text search, reading progress tracking, reading notes and yearly reading goals.
+
+It bundles pdf.js (Apache-2.0), Font Awesome Free (OFL-1.1 / CC BY 4.0 / MIT), Tailwind CSS (MIT)
+and SQLite (public domain); Rust dependencies are mostly MIT and/or Apache-2.0. Licensed under
+AGPL-3.0. Copyright © 2026 Halil Karakaya.

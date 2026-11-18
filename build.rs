@@ -1,3 +1,6 @@
+// Kütüphane Takip Sistemi Pro — Copyright (C) 2026 Halil Karakaya
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Derleme betiği:
 //  1) static/ klasöründeki tüm arayüz dosyalarını exe'nin içine gömmek için bir tablo üretir.
 //  2) Windows'ta exe'ye simge ve sürüm bilgisi ekler.

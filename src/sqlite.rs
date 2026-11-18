@@ -1,3 +1,6 @@
+// Kütüphane Takip Sistemi Pro — Copyright (C) 2026 Halil Karakaya
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! SQLite C arayüzü için ince, güvenli sarmalayıcı.
 //! Windows derlemesinde SQLite kaynak kodu `libsqlite3-sys` (bundled) ile exe'ye gömülür;
 //! burada yalnızca ihtiyaç duyulan fonksiyonlar bildirilir.

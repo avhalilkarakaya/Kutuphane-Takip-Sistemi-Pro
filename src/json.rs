@@ -1,3 +1,6 @@
+// Kütüphane Takip Sistemi Pro — Copyright (C) 2026 Halil Karakaya
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! Küçük, bağımlılıksız JSON üretici/çözücü.
 
 #[derive(Clone, Debug, PartialEq)]

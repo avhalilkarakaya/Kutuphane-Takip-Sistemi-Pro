@@ -1,0 +1,56 @@
+KÜTÜPHANE TAKİP SİSTEMİ PRO — ÜÇÜNCÜ TARAF BİLEŞENLERİ
+======================================================
+
+Kütüphane Takip Sistemi Pro aşağıdaki açık kaynak bileşenleri kullanır. Bileşenler
+uygulama dosyasının (exe) içine gömülü olarak dağıtılır. pdf.js değiştirilmeden
+kullanılmıştır; arayüz stil dosyası Tailwind CSS ve Font Awesome kullanılarak
+üretilmiştir. Lisans metinleri uygulamada "Veri Aktarımı & Ayarlar > Uygulama Hakkında
+> Lisanslar" bölümünden görüntülenebilir; kaynak kodunda static\lisanslar ve
+static\pdfjs klasörlerinde yer alır.
+
+pdf.js 6.2.108 (pdfjs-dist, "legacy" derlemesi)
+  Lisans: Apache License 2.0 (pdfjs/LICENSE.txt)
+  Telif: Mozilla Foundation
+  Kaynak kodu: https://github.com/mozilla/pdf.js
+  pdf.js ile birlikte gelen alt bileşenler:
+    Adobe CMap dosyaları
+      Lisans: BSD 3 maddeli lisans (pdfjs/cmaps/LICENSE) — Telif: Adobe Systems Incorporated
+    Foxit standart yazı tipleri
+      Lisans: BSD 3 maddeli lisans (pdfjs/standard_fonts/LICENSE_FOXIT) — Telif: PDFium Authors
+    Liberation yazı tipleri
+      Lisans: SIL Open Font License 1.1 (pdfjs/standard_fonts/LICENSE_LIBERATION)
+      Telif: Google Corporation, Red Hat, Inc.
+    OpenJPEG (JPEG 2000 kod çözücü)
+      Lisans: BSD 2 maddeli lisans (pdfjs/wasm/LICENSE_OPENJPEG, pdfjs/wasm/LICENSE_PDFJS_OPENJPEG)
+    JBIG2 kod çözücü (PDFium)
+      Lisans: BSD 3 maddeli lisans (pdfjs/wasm/LICENSE_JBIG2) ve Apache License 2.0
+      (pdfjs/wasm/LICENSE_PDFJS_JBIG2)
+    qcms (renk yönetimi)
+      Lisans: MIT (pdfjs/wasm/LICENSE_QCMS) ve BSD 2 maddeli lisans (pdfjs/wasm/LICENSE_PDFJS_QCMS)
+      Telif: Mozilla Corporation, Marti Maria
+    ICC renk profili (CGATS001Compat)
+      Lisans: CC0 1.0 (pdfjs/iccs/LICENSE)
+
+Font Awesome Free 6.4.0
+  Lisans: Yazı tipi dosyası SIL Open Font License 1.1; simge tasarımları CC BY 4.0;
+          stil (CSS) kodu MIT (lisanslar/FontAwesome-LICENSE.txt)
+  Telif: Fonticons, Inc. — https://fontawesome.com
+
+Tailwind CSS 3.4.17 (derlenmiş stil kuralları)
+  Lisans: MIT (lisanslar/TailwindCSS-LICENSE.txt)
+  Telif: Tailwind Labs, Inc.
+
+SQLite
+  Lisans: Kamu malı (public domain) — https://www.sqlite.org/copyright.html
+  libsqlite3-sys kütüphanesi aracılığıyla exe'nin içine derlenir.
+
+Rust kütüphaneleri (wry, tao, zip, libsqlite3-sys, windows, webview2-com ve bağımlılıkları)
+  Lisanslar: çoğunlukla MIT ve/veya Apache License 2.0
+  Kütüphane listesi ve lisans dosyaları derleme sırasında toplanır:
+  lisanslar/rust/KUTUPHANELER.txt
+
+Microsoft Edge WebView2
+  WebView2 Runtime Windows'un bir parçasıdır; uygulama ile dağıtılmaz.
+  WebView2 yükleyicisi (WebView2Loader) webview2-com kütüphanesi aracılığıyla exe'ye
+  gömülür ve Microsoft WebView2 SDK lisans koşullarına tabidir (Microsoft.Web.WebView2
+  NuGet paketiyle birlikte gelen LICENSE.txt).

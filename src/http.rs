@@ -1,3 +1,6 @@
+// Kütüphane Takip Sistemi Pro — Copyright (C) 2026 Halil Karakaya
+// SPDX-License-Identifier: AGPL-3.0-only
+
 //! Yalnızca 127.0.0.1'e bağlanan, bağımlılıksız küçük HTTP/1.1 sunucusu.
 
 use std::fs::File;
